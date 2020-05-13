@@ -1,8 +1,14 @@
+// From https://pypi.org/project/tuyapy/
+
 const baseurl = "https://px1.tuyaeu.com/homeassistant/";
 var proxyurl = "https://cors-anywhere.herokuapp.com/";
 
 function login(username, password, region) {
 	var to_return = {};
+	var url = baseurl + "auth.do";
+	var headers = {
+		"Content-Type": "application/x-www-form-urlencoded"
+	}
 	var data = {
 		"userName": username,
 		"password": password,
@@ -10,10 +16,6 @@ function login(username, password, region) {
 		"bizType": "smart_life",
 		"from": "tuya",
 	}
-	var headers = {
-		"Content-Type": "application/x-www-form-urlencoded"
-	}
-	var url = baseurl + "auth.do";
 	$.ajax({
 		url: proxyurl+url,
 		type: "POST",
@@ -35,7 +37,13 @@ function login(username, password, region) {
 
 function get_device_list(user_info) {
 	to_return = {};
-	var url = baseurl + "skill";
+	if (user_info["access_token"].substring(0,2) == "EU") {
+		var url = baseurl + "skill";
+	} else if (user_info["access_token"].substring(0,2) == "AY") {
+		var url = baseurl.replace("eu", "cn") + "skill";
+	} else {
+		var url = baseurl.replace("eu", "us") + "skill";
+	}
 	var headers = {
 		"Content-Type": "application/json"
 	}
@@ -68,7 +76,13 @@ function get_device_list(user_info) {
 
 function switch_device(device, user_info, new_state) {
 	to_return = {};
-	var url = baseurl + "skill";
+	if (user_info["access_token"].substring(0,2) == "EU") {
+		var url = baseurl + "skill";
+	} else if (user_info["access_token"].substring(0,2) == "AY") {
+		var url = baseurl.replace("eu", "cn") + "skill";
+	} else {
+		var url = baseurl.replace("eu", "us") + "skill";
+	}
 	var headers = {
 		"Content-Type": "application/json"
 	}
@@ -137,10 +151,10 @@ function on_login(user_info) {
 	switches.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
-	update_devices(user_info);
+	update_devices(user_info, false, true);
 }
 
-function update_devices(user_info, force_update) {
+function update_devices(user_info, force_update, loop) {
 	if (force_update == true) {
 		device_list = get_device_list(user_info);
 		user_info["devices"] = device_list["devices"];
@@ -159,7 +173,9 @@ function update_devices(user_info, force_update) {
 	}
 	switchesHTML += "</table>";
 	document.getElementById("switches").innerHTML = switchesHTML;
-	setTimeout(update_devices, 10000, user_info, true);
+	if (loop == true) {
+		setTimeout(update_devices, 10000, user_info, true, true);
+	}
 }
 
 function toggle(device_no) {
@@ -171,7 +187,7 @@ function toggle(device_no) {
 		new_state = 0;
 	}
 	switch_device(device, user_info, new_state);
-	update_devices(user_info, true);
+	update_devices(user_info, true, false);
 }
 
 function on_logout() {
