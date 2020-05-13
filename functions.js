@@ -146,18 +146,19 @@ function update_devices(user_info, force_update) {
 		user_info["devices"] = device_list["devices"];
 	}
 	var devices = user_info["devices"];
-	var switches = document.getElementById("switches");
-	switches.innerHTML = "";
+	var switchesHTML = "<table>";
 	for (device in devices) {
 		var name = devices[device]["name"];
 		var state = devices[device]["data"]["state"];
-		switches.innerHTML += "<br />"+name+": ";
+		switchesHTML += "<tr><td>"+name+": </td><td>";
 		if (state == false) {
-			switches.innerHTML += '<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
+			switchesHTML += '<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a></td></tr>';
 		} else {
-			switches.innerHTML += '<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
+			switchesHTML += '<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a></td></tr>';
 		}
 	}
+	switchesHTML += "</table>";
+	document.getElementById("switches").innerHTML = switchesHTML;
 	setTimeout(update_devices, 10000, user_info, true);
 }
 
