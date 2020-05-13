@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" >
+<head profile="http://www.w3.org/2005/10/profile">
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-164510568-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-164510568-1');
+</script>
+
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description"
+        content="Control your Sonoff devices through your web browser.
+		Download timers and schedules for your switches and smart plugs,
+		instead of using eWelink app.">
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<link rel="icon" type="image/png" href="../short_logo_trans.png">
+<link rel="stylesheet" type="text/css" href="../styles.css">
+<title>SmartAtHome.co.uk - My Sonoff Devices</title>
+<script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script src="../general_functions.js"></script>
+<script src="functions.js"></script>
+<script src="crypto-js.js"></script>
+<script>
+
+var user_info = {};
+
+$( document ).ready(function() {
+	testFirstCookie();
+	document.getElementById('password').onkeydown = function(e){if(e.keyCode == 13){do_login();}};
+	user_info = {'bearer_token': getCookie('bearer_token'), 'user_apikey': getCookie('user_apikey'), 'region': getCookie('region')};
+	console.log(user_info);
+	logged_in = check_login(user_info);
+	if (logged_in['success'] == true) {
+		user_info['devices'] = logged_in['devices'];
+		on_login(user_info);
+		user_info['logged_in'] = true;
+	} else {
+		on_logout();
+		user_info['logged_in'] = false;
+	}
+});
+
+</script>
+</head>
+<body>
+<div data-role="page">
+<center><a href='../index.html'><img src="../long_logo.png" alt="smartathome.co.uk logo"></a><br /><br />
+<div class='hidden' id='login'>
+<label for='username'>Sonoff Username: </label><div class="in-line-div"><input id='username'></div><br />
+<label for='password'>Sonoff Password: </label><div class="in-line-div"><input type='password' id='password'></div><br />
+<label for='region'>Region: </label><div class="in-line-div">
+<select id="region" data-inline="true">
+<option value='eu' selected>&nbsp; EU</option>
+<option value='us'>&nbsp; US</option>
+<option value='cn'>&nbsp; CN</option>
+<option value='as'>&nbsp; AS</option>
+</div>
+<div class="in-line-div"><input type='submit' value='Submit' onclick='return do_login();'></div><br />
+<a href='safe.html'>Is this safe?</a>
+<div id='loginfailed'></div>
+</div>
+<div class='loader hidden' id="loader"></div>
+<div class='hidden' id="switches">
+Your devices:</div></center>
+<div id="myCookieConsent">
+<a id="cookieButton" onClick="acceptCookies()">Understood</a>
+<div>This website is using cookies. <a href="../cookies.html">More details</a></div>
+</div>
+</div><!-- /page -->
+</body></html>
