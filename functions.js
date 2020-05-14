@@ -3,7 +3,7 @@
 const baseurl = "https://px1.tuyaeu.com/homeassistant/";
 var proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-function login(username, password, region) {
+function login(username, password, region, storecreds) {
 	var to_return = {};
 	var url = baseurl + "auth.do";
 	var headers = {
@@ -27,8 +27,10 @@ function login(username, password, region) {
 			console.log(json);
 			if ("access_token" in json) {
 				to_return["access_token"] = json["access_token"];
-				setCookie("access_token", json["access_token"], json["expires_in"]/3600);
 				to_return["logged_in"] = true;
+				if (storecreds == true) {
+					setCookie("access_token", json["access_token"], json["expires_in"]/3600);
+				}
 			}
 		}
 	});
@@ -120,8 +122,9 @@ function do_login() {
 	var username = document.getElementById("username").value;
 	var password = document.getElementById("password").value;
 	var region = document.getElementById("region").value;
+	var storecreds = document.getElementById("storecreds").checked;
 	setTimeout(function(){
-		user_info = login(username, password, region);
+		user_info = login(username, password, region, storecreds);
 		if (user_info["logged_in"] == true) {
 			device_list = get_device_list(user_info);
 			user_info["devices"] = device_list["devices"]
