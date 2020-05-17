@@ -167,15 +167,26 @@ function update_devices(user_info, force_update, loop) {
 	for (device in devices) {
 		var name = devices[device]["name"];
 		var state = devices[device]["data"]["state"];
-		switchesHTML += "<tr><td>"+name+": </td><td>";
-		if (state == false) {
-			switchesHTML += '<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a></td></tr>';
+		var online = devices[device]["data"]["online"];
+		var icon = devices[device]["icon"];
+		var device_id = devices[device]["id"];
+		switchesHTML += "<tr><td><img width=50 src='"+icon+"'></td><td>"+name+": </td><td id='"+device_id+"'>";
+		if (online == false) {
+			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
+		} else if (state == false) {
+			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
 		} else {
-			switchesHTML += '<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a></td></tr>';
+			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
+		}
+		switchesHTML += new_btn + "</td></tr>";
+		if (force_update == true) {
+			document.getElementById(device_id).innerHTML = new_btn;
 		}
 	}
 	switchesHTML += "</table>";
-	document.getElementById("switches").innerHTML = switchesHTML;
+	if (force_update == false) {
+		document.getElementById("switches").innerHTML = switchesHTML;
+	}
 	if (loop == true) {
 		setTimeout(update_devices, 10000, user_info, true, true);
 	}
