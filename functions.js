@@ -67,7 +67,11 @@ function get_device_list(user_info) {
 		dataType: "json",
 		async: false,
 		success: function (json) {
-			if ("payload" in json && "devices" in json["payload"]) {
+			console.log(json);
+			if ("header" in json && "code" in json["header"] && json["header"]["code"] == "FrequentlyInvoke") {
+				to_return["devices"] = user_info["devices"];
+				to_return["success"] = true;
+			} else if ("payload" in json && "devices" in json["payload"]) {
 				to_return["devices"] = json["payload"]["devices"];
 				to_return["success"] = true;
 			}
@@ -188,7 +192,7 @@ function update_devices(user_info, force_update, loop) {
 		document.getElementById("switches").innerHTML = switchesHTML;
 	}
 	if (loop == true) {
-		setTimeout(update_devices, 10000, user_info, true, true);
+		setTimeout(update_devices, 30000, user_info, true, true);
 	}
 }
 
@@ -201,7 +205,8 @@ function toggle(device_no) {
 		new_state = 0;
 	}
 	switch_device(device, user_info, new_state);
-	update_devices(user_info, true, false);
+	device["data"]["state"] = ! state;
+	update_devices(user_info, false, false);
 }
 
 function on_logout() {
