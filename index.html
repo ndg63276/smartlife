@@ -42,14 +42,14 @@
         $(document).ready(function () {
             testFirstCookie();
             document.getElementById("password").onkeydown = function (e) {
-                if (e.keyCode == 13) {
+                if (e.keyCode === 13) {
                     do_login();
                 }
             };
             user_info = {"access_token": getCookie("access_token")};
             console.log(user_info);
             logged_in = check_login(user_info);
-            if (logged_in["success"] == true) {
+            if (logged_in["success"] === true) {
                 user_info["devices"] = logged_in["devices"];
                 on_login(user_info);
                 user_info["logged_in"] = true;
@@ -63,7 +63,7 @@
 </head>
 <body>
 <div id="page" data-role="page">
-    <div style="text-align: center;">
+    <center>
         <a href="../index.html"><img src="../long_logo.png" alt="smartathome.co.uk logo" id="logo"></a>
         <a href="../index.html"><img src="../long_logo_dark.png" alt="smartathome.co.uk logo" id="logo_dark"
                                      class="hidden"></a>
@@ -91,41 +91,12 @@
             <a href="safe.html">Is this safe?</a>
             <div id="loginfailed"></div>
         </div>
-        <div class="loader hidden" id="loader"></div>
+        <div class="loader" id="loader"></div>
         <div class="in-line-div">
             <button onclick="switchTheme()">&#9681;</button>
         </div>
-    </div>
+    </center>
     <div class="" id="switches">
-        <div class="gridElem singleSwitch">
-            <div><img width="50" src="https://images.tuyaeu.com/smart/icon/15324342875tjvmpp9uw8_0.png" alt="TV"></div>
-            <div class="switchName">TV:</div>
-            <div><a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle(0);">Off</a>
-            </div>
-        </div>
-        <div class="gridElem multiSwitch">
-            <div class="singleSwitch">
-                <div><img width="50" src="https://images.tuyaeu.com/smart/icon/15324342875tjvmpp9uw8_0.png" alt="TV">
-                </div>
-                <div class="switchName">TV:</div>
-                <div><a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left"
-                        onclick="toggle(0);">Off</a></div>
-            </div>
-            <div class="singleSwitch">
-                <div><img width="50" src="https://images.tuyaeu.com/smart/icon/15324342875tjvmpp9uw8_0.png" alt="TV">
-                </div>
-                <div class="switchName">TV:</div>
-                <div><a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left"
-                        onclick="toggle(0);">Off</a></div>
-            </div>
-            <div class="singleSwitch">
-                <div><img width="50" src="https://images.tuyaeu.com/smart/icon/15324342875tjvmpp9uw8_0.png" alt="TV">
-                </div>
-                <div class="switchName">TV:</div>
-                <div><a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left"
-                        onclick="toggle(0);">Off</a></div>
-            </div>
-        </div>
     </div>
     <div id="myCookieConsent">
         <a id="cookieButton" onClick="acceptCookies()">Understood</a>

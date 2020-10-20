@@ -39,9 +39,9 @@ function login(username, password, region, storecreds) {
 
 function get_device_list(user_info) {
 	to_return = {};
-	if (user_info["access_token"].substring(0,2) == "EU") {
+	if (user_info["access_token"].substring(0,2) === "EU") {
 		var url = baseurl + "skill";
-	} else if (user_info["access_token"].substring(0,2) == "AY") {
+	} else if (user_info["access_token"].substring(0,2) === "AY") {
 		var url = baseurl.replace("eu", "cn") + "skill";
 	} else {
 		var url = baseurl.replace("eu", "us") + "skill";
@@ -68,7 +68,7 @@ function get_device_list(user_info) {
 		async: false,
 		success: function (json) {
 			console.log(json);
-			if ("header" in json && "code" in json["header"] && json["header"]["code"] == "FrequentlyInvoke") {
+			if ("header" in json && "code" in json["header"] && json["header"]["code"] === "FrequentlyInvoke") {
 				to_return["devices"] = user_info["devices"];
 				to_return["success"] = true;
 			} else if ("payload" in json && "devices" in json["payload"]) {
@@ -82,9 +82,9 @@ function get_device_list(user_info) {
 
 function switch_device(device, user_info, new_state) {
 	to_return = {};
-	if (user_info["access_token"].substring(0,2) == "EU") {
+	if (user_info["access_token"].substring(0,2) === "EU") {
 		var url = baseurl + "skill";
-	} else if (user_info["access_token"].substring(0,2) == "AY") {
+	} else if (user_info["access_token"].substring(0,2) === "AY") {
 		var url = baseurl.replace("eu", "cn") + "skill";
 	} else {
 		var url = baseurl.replace("eu", "us") + "skill";
@@ -175,9 +175,9 @@ function update_devices(user_info, force_update) {
 		var icon = devices[device]["icon"];
 		var device_id = devices[device]["id"];
 
-		add_or_update_switch(name, state, online, icon, device_id);
+		add_or_update_switch(name, state, online, icon, device_id, device);
 	}
-	setTimeout(update_devices, 30000, user_info, true, true);
+	//setTimeout(update_devices, 30000, user_info, true, true);
 }
 
 function toggle(device_no) {
@@ -190,7 +190,7 @@ function toggle(device_no) {
 	}
 	switch_device(device, user_info, new_state);
 	device["data"]["state"] = ! state;
-	add_or_update_switch(device.name, device.data.state, device.data.online, device.icon, device.id);
+	add_or_update_switch(device.name, device.data.state, device.data.online, device.icon, device.id, device_no);
 }
 
 function on_logout() {
@@ -202,10 +202,10 @@ function on_logout() {
 	loader_div.classList.add("hidden");
 }
 
-function add_or_update_switch(name, state, online, icon, device_id){
-	var actionDiv = $('#action_'+ device_id);
-	if(actionDiv.length === 0){
-		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow");
+function add_or_update_switch(name, state, online, icon, device_id, device_no){
+	var currentActionDiv = $('#action_'+ device_id);
+	if(currentActionDiv.length === 0){
+		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-shadow ui-corner-all ui-btn-up-b ui-btn-hover-b");
 
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
@@ -213,7 +213,7 @@ function add_or_update_switch(name, state, online, icon, device_id){
 		imgDiv.innerHTML = createImg(icon, name);
 		var actionDiv = createElement("div", null);
 		actionDiv.setAttribute("id", "action_" + device_id);
-		actionDiv.innerHTML = createActionLink(device, online, state);
+		actionDiv.innerHTML = createActionLink(device_no, online, state);
 
 		deviceDiv.appendChild(imgDiv);
 		deviceDiv.appendChild(nameDiv);
@@ -222,23 +222,23 @@ function add_or_update_switch(name, state, online, icon, device_id){
 		$('#switches')[0].appendChild(deviceDiv);
 	}
 	else{
-		var deviceDiv = actionDiv.parent()[0];
-		actionDiv.remove();
+		var parentDiv = currentActionDiv.parent()[0];
+		currentActionDiv.remove();
 		var newActionDiv = createElement("div", null);
 		newActionDiv.setAttribute("id", "action_" + device_id);
-		newActionDiv.innerHTML = createActionLink(device, online, state);
+		newActionDiv.innerHTML = createActionLink(device_no, online, state);
 
-		deviceDiv.appendChild(newActionDiv);
+		parentDiv.appendChild(newActionDiv);
 	}
 }
 
 function createActionLink(device, online, state){
 	if (online === false) {
-		return '<a href="#" class="ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow">Offline</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state === false) {
-		return '<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow" onclick="toggle('+device+');">Off</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
 	} else {
-		return '&nbsp;<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow" onclick="toggle('+device+');">On</a>';
+		return '&nbsp;<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
 	}
 }
 
