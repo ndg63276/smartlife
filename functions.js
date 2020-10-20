@@ -129,7 +129,7 @@ function do_login() {
 	var storecreds = document.getElementById("storecreds").checked;
 	setTimeout(function(){
 		user_info = login(username, password, region, storecreds);
-		if (user_info["logged_in"] == true) {
+		if (user_info["logged_in"] === true) {
 			device_list = get_device_list(user_info);
 			user_info["devices"] = device_list["devices"]
 			on_login(user_info);
@@ -141,7 +141,7 @@ function do_login() {
 }
 
 function check_login(user_info) {
-	if (! user_info["access_token"] == "") {
+	if (! user_info["access_token"] === "") {
 		console.log("Getting devices");
 		device_list = get_device_list(user_info);
 		return device_list;
@@ -158,42 +158,26 @@ function on_login(user_info) {
 	switches.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
-	update_devices(user_info, false, true);
+	update_devices(user_info, false);
 }
 
-function update_devices(user_info, force_update, loop) {
+function update_devices(user_info, force_update) {
 	if (force_update == true) {
 		device_list = get_device_list(user_info);
 		user_info["devices"] = device_list["devices"];
+		$('#switches').html('');
 	}
 	var devices = user_info["devices"];
-	var switchesHTML = "<table>";
 	for (device in devices) {
 		var name = devices[device]["name"];
 		var state = devices[device]["data"]["state"];
 		var online = devices[device]["data"]["online"];
 		var icon = devices[device]["icon"];
 		var device_id = devices[device]["id"];
-		switchesHTML += "<tr><td><img width=50 src='"+icon+"'></td><td>"+name+": </td><td id='"+device_id+"'>";
-		if (online == false) {
-			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
-		} else if (state == false) {
-			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
-		} else {
-			var new_btn = '&nbsp;<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
-		}
-		switchesHTML += new_btn + "</td></tr>";
-		if (force_update == true) {
-			document.getElementById(device_id).innerHTML = new_btn;
-		}
+
+		add_or_update_switch(name, state, online, icon, device_id);
 	}
-	switchesHTML += "</table>";
-	if (force_update == false) {
-		document.getElementById("switches").innerHTML = switchesHTML;
-	}
-	if (loop == true) {
-		setTimeout(update_devices, 30000, user_info, true, true);
-	}
+	setTimeout(update_devices, 30000, user_info, true, true);
 }
 
 function toggle(device_no) {
@@ -206,7 +190,7 @@ function toggle(device_no) {
 	}
 	switch_device(device, user_info, new_state);
 	device["data"]["state"] = ! state;
-	update_devices(user_info, false, false);
+	add_or_update_switch(device.name, device.data.state, device.data.online, device.icon, device.id);
 }
 
 function on_logout() {
@@ -216,5 +200,61 @@ function on_logout() {
 	login_div.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
+}
+
+function add_or_update_switch(name, state, online, icon, device_id){
+	var actionDiv = $('#action_'+ device_id);
+	if(actionDiv.length === 0){
+		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow");
+
+		var nameDiv = createElement("div", "switchName");
+		nameDiv.innerHTML = name;
+		var imgDiv = createElement("div", null);
+		imgDiv.innerHTML = createImg(icon, name);
+		var actionDiv = createElement("div", null);
+		actionDiv.setAttribute("id", "action_" + device_id);
+		actionDiv.innerHTML = createActionLink(device, online, state);
+
+		deviceDiv.appendChild(imgDiv);
+		deviceDiv.appendChild(nameDiv);
+		deviceDiv.appendChild(actionDiv);
+
+		$('#switches')[0].appendChild(deviceDiv);
+	}
+	else{
+		var deviceDiv = actionDiv.parent()[0];
+		actionDiv.remove();
+		var newActionDiv = createElement("div", null);
+		newActionDiv.setAttribute("id", "action_" + device_id);
+		newActionDiv.innerHTML = createActionLink(device, online, state);
+
+		deviceDiv.appendChild(newActionDiv);
+	}
+}
+
+function createActionLink(device, online, state){
+	if (online === false) {
+		return '<a href="#" class="ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow">Offline</a>';
+	} else if (state === false) {
+		return '<a href="#" class="ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow" onclick="toggle('+device+');">Off</a>';
+	} else {
+		return '&nbsp;<a href="#" class="ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left borderShadow" onclick="toggle('+device+');">On</a>';
+	}
+}
+
+function createImg(icon, name){
+	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
+}
+
+function createElement(typeName, className){
+	var elem = document.createElement(typeName);
+	if(!isNullOrEmpty(className))
+		elem.className = className;
+
+	return elem;
+}
+
+function isNullOrEmpty(entry){
+	return entry == null || entry === '';
 }
 
