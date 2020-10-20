@@ -1,0 +1,46 @@
+:root {
+    --shadow-color: rgba(3, 8, 20, 0.1);
+}
+
+html {
+    transition: all 1s;
+}
+
+.switchName{
+    padding-top: 15px;
+}
+#switches {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(256px, auto));
+    grid-auto-rows: minmax(64px, auto);
+    margin: 20px;
+}
+
+.borderShadow{
+    box-shadow: var(--shadow-color) 0px 0.15rem 0.5rem, rgba(2, 8, 20, 0.1) 0px 0.075rem 0.175rem;
+    border-radius: 4px;
+}
+
+.gridElem {
+    overflow: hidden;
+    padding: 6px;
+}
+.singleSwitch{
+    grid-template-columns: min(55px) auto min(100px);
+    display: grid;
+}
+.multiSwitch{
+    grid-template-columns: repeat(auto-fit, minmax(50px, auto));
+    display: grid;
+}
+.gridElem:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
+@media screen and (min-width: 600px) {
+    #switches {
+        gap: 1rem;
+        grid-auto-rows: minmax(96px, auto);
+    }
+}
