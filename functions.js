@@ -164,9 +164,17 @@ function readLocalStorage(){
 	// Not initialized
 	if(localStorage.autoRefresh == null){
 		localStorage.autoRefresh = true;
+		localStorage.theme = "a";
 	}
 
 	$('#autorefresh').prop( "checked", localStorage.autoRefresh === "true").checkboxradio( "refresh" );
+	if(localStorage.theme !== "a")
+		checkTheme();
+}
+
+function checkTheme(){
+	switchTheme();
+	localStorage.theme = $("#page").attr("data-theme");
 }
 
 function checkAutorefresh(){
