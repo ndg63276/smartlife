@@ -168,14 +168,8 @@ function update_devices(user_info, force_update) {
 		$('#switches').html('');
 	}
 	var devices = user_info["devices"];
-	for (device in devices) {
-		var name = devices[device]["name"];
-		var state = devices[device]["data"]["state"];
-		var online = devices[device]["data"]["online"];
-		var icon = devices[device]["icon"];
-		var device_id = devices[device]["id"];
-
-		add_or_update_switch(name, state, online, icon, device_id, device);
+	for (device_no in devices) {
+		add_or_update_switch(devices[device_no], device_no);
 	}
 	//setTimeout(update_devices, 30000, user_info, true, true);
 }
@@ -183,14 +177,14 @@ function update_devices(user_info, force_update) {
 function toggle(device_no) {
 	var device = user_info["devices"][device_no];
 	var state = device["data"]["state"];
-	if (state == false) {
+	if (state === false) {
 		new_state = 1;
 	} else {
 		new_state = 0;
 	}
 	switch_device(device, user_info, new_state);
 	device["data"]["state"] = ! state;
-	add_or_update_switch(device.name, device.data.state, device.data.online, device.icon, device.id, device_no);
+	add_or_update_switch(device, device_no);
 }
 
 function on_logout() {
@@ -202,18 +196,25 @@ function on_logout() {
 	loader_div.classList.add("hidden");
 }
 
-function add_or_update_switch(name, state, online, icon, device_id, device_no){
+function add_or_update_switch(device, device_no){
+	var name = device["name"];
+	var state = device["data"]["state"];
+	var online = device["data"]["online"];
+	var icon = device["icon"];
+	var device_id = device["id"];
+	var type = device["dev_type"];
+
 	var currentActionDiv = $('#action_'+ device_id);
 	if(currentActionDiv.length === 0){
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-shadow ui-corner-all ui-btn-up-b ui-btn-hover-b");
 
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
-		var imgDiv = createElement("div", null);
-		imgDiv.innerHTML = createImg(icon, name);
+		var imgDiv = createElement("div", "switchImg");
+		imgDiv.innerHTML = createImg(icon, name, type);
 		var actionDiv = createElement("div", null);
 		actionDiv.setAttribute("id", "action_" + device_id);
-		actionDiv.innerHTML = createActionLink(device_no, online, state);
+		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
 
 		deviceDiv.appendChild(imgDiv);
 		deviceDiv.appendChild(nameDiv);
@@ -226,23 +227,26 @@ function add_or_update_switch(name, state, online, icon, device_id, device_no){
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", null);
 		newActionDiv.setAttribute("id", "action_" + device_id);
-		newActionDiv.innerHTML = createActionLink(device_no, online, state);
+		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
 
 		parentDiv.appendChild(newActionDiv);
 	}
 }
 
-function createActionLink(device, online, state){
+function createActionLink(device, online, state, type){
+	var onString = type === "scene" ? "Start" : "On";
 	if (online === false) {
 		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state === false) {
 		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
 	} else {
-		return '&nbsp;<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">On</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">' + onString + '</a>';
 	}
 }
 
-function createImg(icon, name){
+function createImg(icon, name, type){
+	if(isNullOrEmpty(icon))
+		return "<p>" + type + "</p>";
 	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
 }
 
