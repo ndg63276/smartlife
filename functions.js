@@ -2,6 +2,15 @@
 
 const baseurl = "https://px1.tuyaeu.com/homeassistant/";
 var proxyurl = "https://cors-anywhere.herokuapp.com/";
+var autoRefreshTimer;
+
+$( document ).ready(function() {
+	readLocalStorage();
+	$('#autorefresh').on("change", function (event, ui) {
+		localStorage.autoRefresh = $(this).prop("checked");;
+		checkAutorefresh();
+	});
+});
 
 function login(username, password, region, storecreds) {
 	var to_return = {};
@@ -151,6 +160,21 @@ function check_login(user_info) {
 	}
 }
 
+function readLocalStorage(){
+	// Not initialized
+	if(localStorage.autoRefresh == null){
+		localStorage.autoRefresh = true;
+	}
+
+	$('#autorefresh').prop( "checked", localStorage.autoRefresh === "true").checkboxradio( "refresh" );
+}
+
+function checkAutorefresh(){
+	clearInterval(autoRefreshTimer);
+	if($("#autorefresh").prop("checked") && user_info["logged_in"] === true)
+		autoRefreshTimer = setInterval(update_devices, 30_000, user_info, true);
+}
+
 function on_login(user_info) {
 	var login_div = document.getElementById("login");
 	login_div.classList.add("hidden");
@@ -159,6 +183,7 @@ function on_login(user_info) {
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
 	update_devices(user_info, false);
+	checkAutorefresh();
 }
 
 function update_devices(user_info, force_update) {
@@ -171,7 +196,6 @@ function update_devices(user_info, force_update) {
 	for (device_no in devices) {
 		add_or_update_switch(devices[device_no], device_no);
 	}
-	//setTimeout(update_devices, 30000, user_info, true, true);
 }
 
 function toggle(device_no) {
