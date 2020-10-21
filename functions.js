@@ -6,8 +6,8 @@ var autoRefreshTimer;
 
 $( document ).ready(function() {
 	readLocalStorage();
-	$('#autorefresh').on("change", function (event, ui) {
-		localStorage.autoRefresh = $(this).prop("checked");;
+	$('#autorefresh').on("change", function () {
+		localStorage.autoRefresh = $(this).prop("checked");
 		checkAutorefresh();
 	});
 });
@@ -37,7 +37,7 @@ function login(username, password, region, storecreds) {
 			if ("access_token" in json) {
 				to_return["access_token"] = json["access_token"];
 				to_return["logged_in"] = true;
-				if (storecreds == true) {
+				if (storecreds === true) {
 					setCookie("access_token", json["access_token"], json["expires_in"]/3600);
 				}
 			}
@@ -48,12 +48,13 @@ function login(username, password, region, storecreds) {
 
 function get_device_list(user_info) {
 	to_return = {};
+	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
-		var url = baseurl + "skill";
+		url = baseurl + "skill";
 	} else if (user_info["access_token"].substring(0,2) === "AY") {
-		var url = baseurl.replace("eu", "cn") + "skill";
+		url = baseurl.replace("eu", "cn") + "skill";
 	} else {
-		var url = baseurl.replace("eu", "us") + "skill";
+		url = baseurl.replace("eu", "us") + "skill";
 	}
 	var headers = {
 		"Content-Type": "application/json"
@@ -91,12 +92,13 @@ function get_device_list(user_info) {
 
 function switch_device(device, user_info, new_state) {
 	to_return = {};
+	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
-		var url = baseurl + "skill";
+		url = baseurl + "skill";
 	} else if (user_info["access_token"].substring(0,2) === "AY") {
-		var url = baseurl.replace("eu", "cn") + "skill";
+		url = baseurl.replace("eu", "cn") + "skill";
 	} else {
-		var url = baseurl.replace("eu", "us") + "skill";
+		url = baseurl.replace("eu", "us") + "skill";
 	}
 	var headers = {
 		"Content-Type": "application/json"
@@ -195,7 +197,7 @@ function on_login(user_info) {
 }
 
 function update_devices(user_info, force_update) {
-	if (force_update == true) {
+	if (force_update === true) {
 		device_list = get_device_list(user_info);
 		user_info["devices"] = device_list["devices"];
 		$('#switches').html('');
@@ -238,7 +240,7 @@ function add_or_update_switch(device, device_no){
 
 	var currentActionDiv = $('#action_'+ device_id);
 	if(currentActionDiv.length === 0){
-		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-shadow ui-corner-all ui-btn-up-b ui-btn-hover-b");
+		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b");
 
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
