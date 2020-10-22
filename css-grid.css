@@ -8,6 +8,7 @@ body[data-theme='b'] {
 
 * {
     transition: all 0.7s;
+    vertical-align: top;
 }
 
 #switches {
