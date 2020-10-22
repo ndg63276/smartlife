@@ -34,32 +34,6 @@
     <title>SmartAtHome.co.uk - My Smart Life Devices</title>
     <script src="../general_functions.js"></script>
     <script src="functions.js"></script>
-
-    <script>
-
-        var user_info = {};
-
-        $(document).ready(function () {
-            testFirstCookie();
-            document.getElementById("password").onkeydown = function (e) {
-                if (e.keyCode === 13) {
-                    do_login();
-                }
-            };
-            user_info = {"access_token": getCookie("access_token")};
-            console.log(user_info);
-            logged_in = check_login(user_info);
-            if (logged_in["success"] === true) {
-                user_info["devices"] = logged_in["devices"];
-                on_login(user_info);
-                user_info["logged_in"] = true;
-            } else {
-                on_logout();
-                user_info["logged_in"] = false;
-            }
-        });
-
-    </script>
 </head>
 <body>
 <div id="page" data-role="page">

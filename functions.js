@@ -3,8 +3,27 @@
 const baseurl = "https://px1.tuyaeu.com/homeassistant/";
 var proxyurl = "https://cors-anywhere.herokuapp.com/";
 var autoRefreshTimer;
+var user_info = {};
 
 $( document ).ready(function() {
+	testFirstCookie();
+	document.getElementById("password").onkeydown = function (e) {
+		if (e.keyCode === 13) {
+			do_login();
+		}
+	};
+	user_info = {"access_token": getCookie("access_token")};
+	console.log(user_info);
+	logged_in = check_login(user_info);
+	if (logged_in["success"] === true) {
+		user_info["devices"] = logged_in["devices"];
+		on_login(user_info);
+		user_info["logged_in"] = true;
+	} else {
+		on_logout();
+		user_info["logged_in"] = false;
+	}
+
 	readLocalStorage();
 	$('#autorefresh').on("change", function () {
 		localStorage.autoRefresh = $(this).prop("checked");
@@ -152,7 +171,7 @@ function do_login() {
 }
 
 function check_login(user_info) {
-	if (! user_info["access_token"] === "") {
+	if (user_info["access_token"] !== "") {
 		console.log("Getting devices");
 		device_list = get_device_list(user_info);
 		return device_list;
