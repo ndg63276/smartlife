@@ -98,11 +98,12 @@ function get_device_list(user_info) {
 		success: function (json) {
 			console.log(json);
 			if ("header" in json && "code" in json["header"] && json["header"]["code"] === "FrequentlyInvoke") {
-				to_return["devices"] = user_info["devices"];
+				to_return["devices"] = (user_info["devices"] !== undefined ? user_info["devices"] : JSON.parse(localStorage.devices));
 				to_return["success"] = true;
 			} else if ("payload" in json && "devices" in json["payload"]) {
 				to_return["devices"] = json["payload"]["devices"];
 				to_return["success"] = true;
+				localStorage.devices = JSON.stringify(to_return["devices"]);
 			}
 		}
 	});
