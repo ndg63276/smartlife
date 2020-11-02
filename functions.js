@@ -29,6 +29,7 @@ $( document ).ready(function() {
 		localStorage.autoRefresh = $(this).prop("checked");
 		checkAutorefresh();
 	});
+	checkAutorefresh();
 });
 
 function login(username, password, region, storecreds) {
@@ -184,14 +185,14 @@ function check_login(user_info) {
 
 function readLocalStorage(){
 	// Not initialized
-	if(localStorage.autoRefresh == null){
-		localStorage.autoRefresh = true;
+	if (localStorage.autoRefresh == null) {
+		localStorage.autoRefresh = "true";
 		localStorage.theme = "a";
 	}
-
 	$('#autorefresh').prop( "checked", localStorage.autoRefresh === "true").checkboxradio( "refresh" );
-	if(localStorage.theme !== "a")
+	if (localStorage.theme !== "a") {
 		checkTheme();
+	}
 }
 
 function checkTheme(){
@@ -201,8 +202,9 @@ function checkTheme(){
 
 function checkAutorefresh(){
 	clearInterval(autoRefreshTimer);
-	if($("#autorefresh").prop("checked") && user_info["logged_in"] === true)
+	if (localStorage.autoRefresh === "true" && user_info["logged_in"] === true) {
 		autoRefreshTimer = setInterval(update_devices, 30_000, user_info, true);
+	}
 }
 
 function on_login(user_info) {
@@ -259,9 +261,8 @@ function add_or_update_switch(device, device_no){
 	var type = device["dev_type"];
 
 	var currentActionDiv = $('#action_'+ device_id);
-	if(currentActionDiv.length === 0){
+	if (currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b");
-
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
 		var imgDiv = createElement("div", "switchImg");
@@ -269,20 +270,16 @@ function add_or_update_switch(device, device_no){
 		var actionDiv = createElement("div", null);
 		actionDiv.setAttribute("id", "action_" + device_id);
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
-
 		deviceDiv.appendChild(imgDiv);
 		deviceDiv.appendChild(nameDiv);
 		deviceDiv.appendChild(actionDiv);
-
 		$('#switches')[0].appendChild(deviceDiv);
-	}
-	else{
+	} else {
 		var parentDiv = currentActionDiv.parent()[0];
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", null);
 		newActionDiv.setAttribute("id", "action_" + device_id);
 		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
-
 		parentDiv.appendChild(newActionDiv);
 	}
 }
@@ -299,16 +296,17 @@ function createActionLink(device, online, state, type){
 }
 
 function createImg(icon, name, type){
-	if(isNullOrEmpty(icon))
+	if (isNullOrEmpty(icon)) {
 		return "<p>" + type + "</p>";
+	}
 	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
 }
 
 function createElement(typeName, className){
 	var elem = document.createElement(typeName);
-	if(!isNullOrEmpty(className))
+	if (!isNullOrEmpty(className)) {
 		elem.className = className;
-
+	}
 	return elem;
 }
 
