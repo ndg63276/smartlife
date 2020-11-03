@@ -12,12 +12,16 @@ $( document ).ready(function() {
 			do_login();
 		}
 	};
-	user_info = {"access_token": getCookie("access_token")};
+	user_info = {
+		"access_token": getCookie("access_token"),
+		"sl_refresh_token": getCookie("sl_refresh_token"),
+		"sl_expires_in": getCookie("sl_expires_in")
+	};
 	console.log(user_info);
-	logged_in = check_login(user_info);
+	logged_in = check_login();
 	if (logged_in["success"] === true) {
 		user_info["devices"] = logged_in["devices"];
-		on_login(user_info);
+		on_login();
 		user_info["logged_in"] = true;
 	} else {
 		on_logout();
@@ -33,7 +37,6 @@ $( document ).ready(function() {
 });
 
 function login(username, password, region, storecreds) {
-	var to_return = {};
 	var url = baseurl + "auth.do";
 	var headers = {
 		"Content-Type": "application/x-www-form-urlencoded"
@@ -53,20 +56,26 @@ function login(username, password, region, storecreds) {
 		dataType: "json",
 		async: false,
 		success: function (json) {
-			console.log(json);
-			if ("access_token" in json) {
-				to_return["access_token"] = json["access_token"];
-				to_return["logged_in"] = true;
-				if (storecreds === true) {
-					setCookie("access_token", json["access_token"], json["expires_in"]/3600);
-				}
-			}
+			store_tokens(json, storecreds);
 		}
 	});
-	return to_return;
 }
 
-function get_device_list(user_info) {
+function store_tokens(json, storecreds) {
+	if ("access_token" in json) {
+		user_info["access_token"] = json["access_token"];
+		user_info["sl_refresh_token"] = json["refresh_token"];
+		user_info["sl_expires_in"] = Date.now() + json["expires_in"]*1000;
+		user_info["logged_in"] = true;
+		if (storecreds === true) {
+			setCookie("access_token", json["access_token"], json["expires_in"]/3600);
+			setCookie("sl_refresh_token", json["refresh_token"], json["expires_in"]/3600);
+			setCookie("sl_expires_in", Date.now() + json["expires_in"]*1000, json["expires_in"]/3600);
+		}
+	}
+}
+
+function get_device_list() {
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -111,7 +120,7 @@ function get_device_list(user_info) {
 	return to_return
 }
 
-function switch_device(device, user_info, new_state) {
+function switch_device(device, new_state) {
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -150,6 +159,22 @@ function switch_device(device, user_info, new_state) {
 	return to_return
 }
 
+function refresh_token() {
+	url = baseurl + "access.do";
+	params = { "grant_type": "refresh_token", "refresh_token": user_info["sl_refresh_token"] }
+	$.ajax({
+		url: proxyurl+url,
+		type: "GET",
+		data: params,
+		dataType: "json",
+		async: false,
+		success: function (json) {
+			console.log(json);
+			new_info = store_tokens(json, true);
+		}
+	});
+}
+
 function do_login() {
 	var login_div = document.getElementById("login");
 	login_div.classList.add("hidden");
@@ -160,11 +185,11 @@ function do_login() {
 	var region = document.getElementById("region").value;
 	var storecreds = document.getElementById("storecreds").checked;
 	setTimeout(function(){
-		user_info = login(username, password, region, storecreds);
+		login(username, password, region, storecreds);
 		if (user_info["logged_in"] === true) {
-			device_list = get_device_list(user_info);
+			device_list = get_device_list();
 			user_info["devices"] = device_list["devices"]
-			on_login(user_info);
+			on_login();
 		} else {
 			on_logout();
 			document.getElementById("loginfailed").innerHTML = "Login failed";
@@ -172,10 +197,10 @@ function do_login() {
 	}, 100);
 }
 
-function check_login(user_info) {
+function check_login() {
 	if (user_info["access_token"] !== "") {
 		console.log("Getting devices");
-		device_list = get_device_list(user_info);
+		device_list = get_device_list();
 		return device_list;
 	} else {
 		console.log("No access_token");
@@ -207,7 +232,7 @@ function checkAutorefresh(){
 	}
 }
 
-function on_login(user_info) {
+function on_login() {
 	var login_div = document.getElementById("login");
 	login_div.classList.add("hidden");
 	var switches = document.getElementById("switches");
@@ -220,7 +245,7 @@ function on_login(user_info) {
 
 function update_devices(user_info, force_update) {
 	if (force_update === true) {
-		device_list = get_device_list(user_info);
+		device_list = get_device_list();
 		user_info["devices"] = device_list["devices"];
 		$('#switches').html('');
 	}
@@ -238,7 +263,7 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	switch_device(device, user_info, new_state);
+	switch_device(device, new_state);
 	device["data"]["state"] = ! state;
 	add_or_update_switch(device, device_no);
 }
