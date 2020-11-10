@@ -339,3 +339,7 @@ function isNullOrEmpty(entry){
 	return entry == null || entry === '';
 }
 
+function logout() {
+	setCookie("access_token", "", -1);
+	location.reload();
+}
