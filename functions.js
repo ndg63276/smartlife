@@ -341,5 +341,7 @@ function isNullOrEmpty(entry){
 
 function logout() {
 	setCookie("access_token", "", -1);
+	setCookie("sl_refresh_token", "", -1);
+	setCookie("sl_expires_in", "", -1);
 	location.reload();
 }
