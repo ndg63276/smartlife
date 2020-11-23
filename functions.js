@@ -75,7 +75,10 @@ function store_tokens(json, storecreds) {
 	}
 }
 
-function get_device_list() {
+function get_device_list(refresh_access_token) {
+	if (refresh_access_token === true) {
+		refresh_token();
+	}
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -187,7 +190,7 @@ function do_login() {
 	setTimeout(function(){
 		login(username, password, region, storecreds);
 		if (user_info["logged_in"] === true) {
-			device_list = get_device_list();
+			device_list = get_device_list(false);
 			user_info["devices"] = device_list["devices"]
 			on_login();
 		} else {
@@ -200,7 +203,7 @@ function do_login() {
 function check_login() {
 	if (user_info["access_token"] !== "") {
 		console.log("Getting devices");
-		device_list = get_device_list();
+		device_list = get_device_list(false);
 		return device_list;
 	} else {
 		console.log("No access_token");
@@ -228,7 +231,7 @@ function checkTheme(){
 function checkAutorefresh(){
 	clearInterval(autoRefreshTimer);
 	if (localStorage.autoRefresh === "true" && user_info["logged_in"] === true) {
-		autoRefreshTimer = setInterval(update_devices, 30_000, user_info, true);
+		autoRefreshTimer = setInterval(update_devices, 31_000, user_info, true);
 	}
 }
 
@@ -245,7 +248,7 @@ function on_login() {
 
 function update_devices(user_info, force_update) {
 	if (force_update === true) {
-		device_list = get_device_list();
+		device_list = get_device_list(true);
 		user_info["devices"] = device_list["devices"];
 		$('#switches').html('');
 	}
