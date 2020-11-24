@@ -207,7 +207,7 @@ function check_login() {
 		return device_list;
 	} else {
 		console.log("No access_token");
-		return false;
+		return {"success": false};
 	}
 }
 
@@ -240,6 +240,8 @@ function on_login() {
 	login_div.classList.add("hidden");
 	var switches = document.getElementById("switches");
 	switches.classList.remove("hidden");
+	var buttons = document.getElementById("buttons");
+	buttons.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
 	update_devices(user_info, false);
