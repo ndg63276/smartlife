@@ -34,12 +34,12 @@ body[data-theme='b'] {
      transform: translateY(-3px) scale(1.05);
  }
 
-.singleSwitch{
+#switches .singleSwitch{
     grid-template-rows: 1fr 1fr 1fr;
     grid-gap: 0px;
     display: grid;
     border-radius: 2.5rem 0 3.5rem 2.5rem;
-    border: 4px solid transparent !important;
+    border: 4px solid transparent;
 }
 
 .singleSwitch.switch_false {
