@@ -1,9 +1,11 @@
 :root {
     --shadow-color: rgba(3, 8, 20, 0.1);
+    --background-color: linear-gradient(#f6f6f6,#f6f6f6);
 }
 
 body[data-theme='b'] {
     --shadow-color: #2ad;
+    --background-color: linear-gradient(#333,#333);
 }
 
 * {
@@ -13,9 +15,9 @@ body[data-theme='b'] {
 
 #switches {
     display: grid;
-    gap: 0.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(256px, auto));
-    grid-auto-rows: minmax(64px, auto);
+    gap: 0.5rem 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(128px, auto));
+    grid-auto-rows: minmax(256px, auto);
     margin: 20px;
 }
 
@@ -33,15 +35,34 @@ body[data-theme='b'] {
  }
 
 .singleSwitch{
-    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
     grid-gap: 0px;
     display: grid;
+    border-radius: 2.5rem 0 3.5rem 2.5rem;
+    border: 4px solid transparent !important;
 }
+
+.singleSwitch.switch_false {
+    background: var(--background-color) padding-box,linear-gradient(90deg,#db1d60,#ed4f32) 0/50% no-repeat border-box,linear-gradient(-90deg,#eb7d01,#ed4f32 37.5vw,rgba(237,79,50,0)) 100% 101%/65% 75% no-repeat border-box;
+}
+.singleSwitch.switch_true {
+    background: var(--background-color) padding-box,linear-gradient(90deg,#5AFF15,#00B712) 0/50% no-repeat border-box,linear-gradient(-90deg,#00B712,#63D471 37.5vw,rgba(237,79,50,0)) 100% 101%/65% 75% no-repeat border-box;
+}
+.singleSwitch.switch_scene {
+    background: var(--background-color) padding-box,linear-gradient(90deg,#2A2A72,#009FFD) 0/50% no-repeat border-box,linear-gradient(-90deg,#009FFD,#7F53AC 37.5vw,rgba(237,79,50,0)) 100% 101%/65% 75% no-repeat border-box;
+}
+
 .switchName{
-    grid-column: 1 / 3;
     grid-row: 1;
+    white-space: break-spaces;
+    padding: 0.5rem;
 }
 
 .switchImg{
     text-transform: capitalize;
+    grid-row: 2;
+}
+
+.switchAction{
+    grid-row: 3;
 }

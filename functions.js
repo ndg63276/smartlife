@@ -291,13 +291,14 @@ function add_or_update_switch(device, device_no){
 	var type = device["dev_type"];
 
 	var currentActionDiv = $('#action_'+ device_id);
-	if (currentActionDiv.length === 0) {
-		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b");
+	if(currentActionDiv.length === 0) {
+		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
+
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
 		var imgDiv = createElement("div", "switchImg");
 		imgDiv.innerHTML = createImg(icon, name, type);
-		var actionDiv = createElement("div", null);
+		var actionDiv = createElement("div", "switchAction");
 		actionDiv.setAttribute("id", "action_" + device_id);
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
 		deviceDiv.appendChild(imgDiv);
@@ -306,12 +307,19 @@ function add_or_update_switch(device, device_no){
 		$('#switches')[0].appendChild(deviceDiv);
 	} else {
 		var parentDiv = currentActionDiv.parent()[0];
+		parentDiv.classList.remove("switch_true");
+		parentDiv.classList.remove("switch_false");
+		parentDiv.classList.add(getSwitchClass(type, state));
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", null);
 		newActionDiv.setAttribute("id", "action_" + device_id);
 		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
 		parentDiv.appendChild(newActionDiv);
 	}
+}
+
+function getSwitchClass(type, state){
+	return "switch_" + (type === "scene" ? "scene" : state);
 }
 
 function createActionLink(device, online, state, type){
