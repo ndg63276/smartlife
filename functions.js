@@ -12,12 +12,16 @@ $( document ).ready(function() {
 			do_login();
 		}
 	};
-	user_info = {"access_token": getCookie("access_token")};
+	user_info = {
+		"access_token": getCookie("access_token"),
+		"sl_refresh_token": getCookie("sl_refresh_token"),
+		"sl_expires_in": getCookie("sl_expires_in")
+	};
 	console.log(user_info);
-	logged_in = check_login(user_info);
+	logged_in = check_login();
 	if (logged_in["success"] === true) {
 		user_info["devices"] = logged_in["devices"];
-		on_login(user_info);
+		on_login();
 		user_info["logged_in"] = true;
 	} else {
 		on_logout();
@@ -29,10 +33,10 @@ $( document ).ready(function() {
 		localStorage.autoRefresh = $(this).prop("checked");
 		checkAutorefresh();
 	});
+	checkAutorefresh();
 });
 
 function login(username, password, region, storecreds) {
-	var to_return = {};
 	var url = baseurl + "auth.do";
 	var headers = {
 		"Content-Type": "application/x-www-form-urlencoded"
@@ -52,20 +56,29 @@ function login(username, password, region, storecreds) {
 		dataType: "json",
 		async: false,
 		success: function (json) {
-			console.log(json);
-			if ("access_token" in json) {
-				to_return["access_token"] = json["access_token"];
-				to_return["logged_in"] = true;
-				if (storecreds === true) {
-					setCookie("access_token", json["access_token"], json["expires_in"]/3600);
-				}
-			}
+			store_tokens(json, storecreds);
 		}
 	});
-	return to_return;
 }
 
-function get_device_list(user_info) {
+function store_tokens(json, storecreds) {
+	if ("access_token" in json) {
+		user_info["access_token"] = json["access_token"];
+		user_info["sl_refresh_token"] = json["refresh_token"];
+		user_info["sl_expires_in"] = Date.now() + json["expires_in"]*1000;
+		user_info["logged_in"] = true;
+		if (storecreds === true) {
+			setCookie("access_token", json["access_token"], json["expires_in"]/3600);
+			setCookie("sl_refresh_token", json["refresh_token"], json["expires_in"]/3600);
+			setCookie("sl_expires_in", Date.now() + json["expires_in"]*1000, json["expires_in"]/3600);
+		}
+	}
+}
+
+function get_device_list(refresh_access_token) {
+	if (refresh_access_token === true) {
+		refresh_token();
+	}
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -110,7 +123,7 @@ function get_device_list(user_info) {
 	return to_return
 }
 
-function switch_device(device, user_info, new_state) {
+function switch_device(device, new_state) {
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -149,6 +162,22 @@ function switch_device(device, user_info, new_state) {
 	return to_return
 }
 
+function refresh_token() {
+	url = baseurl + "access.do";
+	params = { "grant_type": "refresh_token", "refresh_token": user_info["sl_refresh_token"] }
+	$.ajax({
+		url: proxyurl+url,
+		type: "GET",
+		data: params,
+		dataType: "json",
+		async: false,
+		success: function (json) {
+			console.log(json);
+			new_info = store_tokens(json, true);
+		}
+	});
+}
+
 function do_login() {
 	var login_div = document.getElementById("login");
 	login_div.classList.add("hidden");
@@ -159,11 +188,11 @@ function do_login() {
 	var region = document.getElementById("region").value;
 	var storecreds = document.getElementById("storecreds").checked;
 	setTimeout(function(){
-		user_info = login(username, password, region, storecreds);
+		login(username, password, region, storecreds);
 		if (user_info["logged_in"] === true) {
-			device_list = get_device_list(user_info);
+			device_list = get_device_list(false);
 			user_info["devices"] = device_list["devices"]
-			on_login(user_info);
+			on_login();
 		} else {
 			on_logout();
 			document.getElementById("loginfailed").innerHTML = "Login failed";
@@ -171,27 +200,27 @@ function do_login() {
 	}, 100);
 }
 
-function check_login(user_info) {
+function check_login() {
 	if (user_info["access_token"] !== "") {
 		console.log("Getting devices");
-		device_list = get_device_list(user_info);
+		device_list = get_device_list(false);
 		return device_list;
 	} else {
 		console.log("No access_token");
-		return false;
+		return {"success": false};
 	}
 }
 
 function readLocalStorage(){
 	// Not initialized
-	if(localStorage.autoRefresh == null){
-		localStorage.autoRefresh = true;
+	if (localStorage.autoRefresh == null) {
+		localStorage.autoRefresh = "true";
 		localStorage.theme = "a";
 	}
-
 	$('#autorefresh').prop( "checked", localStorage.autoRefresh === "true").checkboxradio( "refresh" );
-	if(localStorage.theme !== "a")
+	if (localStorage.theme !== "a") {
 		checkTheme();
+	}
 }
 
 function checkTheme(){
@@ -201,15 +230,18 @@ function checkTheme(){
 
 function checkAutorefresh(){
 	clearInterval(autoRefreshTimer);
-	if($("#autorefresh").prop("checked") && user_info["logged_in"] === true)
-		autoRefreshTimer = setInterval(update_devices, 30_000, user_info, true);
+	if (localStorage.autoRefresh === "true" && user_info["logged_in"] === true) {
+		autoRefreshTimer = setInterval(update_devices, 31_000, user_info, true);
+	}
 }
 
-function on_login(user_info) {
+function on_login() {
 	var login_div = document.getElementById("login");
 	login_div.classList.add("hidden");
 	var switches = document.getElementById("switches");
 	switches.classList.remove("hidden");
+	var buttons = document.getElementById("buttons");
+	buttons.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
 	update_devices(user_info, false);
@@ -218,7 +250,7 @@ function on_login(user_info) {
 
 function update_devices(user_info, force_update) {
 	if (force_update === true) {
-		device_list = get_device_list(user_info);
+		device_list = get_device_list(true);
 		user_info["devices"] = device_list["devices"];
 		$('#switches').html('');
 	}
@@ -236,7 +268,7 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	switch_device(device, user_info, new_state);
+	switch_device(device, new_state);
 	device["data"]["state"] = ! state;
 	add_or_update_switch(device, device_no);
 }
@@ -259,9 +291,8 @@ function add_or_update_switch(device, device_no){
 	var type = device["dev_type"];
 
 	var currentActionDiv = $('#action_'+ device_id);
-	if(currentActionDiv.length === 0){
+	if (currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b");
-
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
 		var imgDiv = createElement("div", "switchImg");
@@ -269,20 +300,16 @@ function add_or_update_switch(device, device_no){
 		var actionDiv = createElement("div", null);
 		actionDiv.setAttribute("id", "action_" + device_id);
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
-
 		deviceDiv.appendChild(imgDiv);
 		deviceDiv.appendChild(nameDiv);
 		deviceDiv.appendChild(actionDiv);
-
 		$('#switches')[0].appendChild(deviceDiv);
-	}
-	else{
+	} else {
 		var parentDiv = currentActionDiv.parent()[0];
 		currentActionDiv.remove();
 		var newActionDiv = createElement("div", null);
 		newActionDiv.setAttribute("id", "action_" + device_id);
 		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
-
 		parentDiv.appendChild(newActionDiv);
 	}
 }
@@ -299,16 +326,17 @@ function createActionLink(device, online, state, type){
 }
 
 function createImg(icon, name, type){
-	if(isNullOrEmpty(icon))
+	if (isNullOrEmpty(icon)) {
 		return "<p>" + type + "</p>";
+	}
 	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
 }
 
 function createElement(typeName, className){
 	var elem = document.createElement(typeName);
-	if(!isNullOrEmpty(className))
+	if (!isNullOrEmpty(className)) {
 		elem.className = className;
-
+	}
 	return elem;
 }
 
@@ -316,3 +344,9 @@ function isNullOrEmpty(entry){
 	return entry == null || entry === '';
 }
 
+function logout() {
+	setCookie("access_token", "", -1);
+	setCookie("sl_refresh_token", "", -1);
+	setCookie("sl_expires_in", "", -1);
+	location.reload();
+}
