@@ -1,7 +1,7 @@
 // From https://pypi.org/project/tuyapy/
 
 const baseurl = "https://px1.tuyaeu.com/homeassistant/";
-var proxyurl = "https://cors-anywhere.herokuapp.com/";
+var proxyurl = "https://cors.smartathome.co.uk/";
 var autoRefreshTimer;
 var user_info = {};
 
