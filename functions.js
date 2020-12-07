@@ -157,6 +157,7 @@ function adjust_device(device, action, new_state) {
 		async: false,
 		success: function (json) {
 			console.log(json);
+			to_return = json;
 		}
 	});
 	return to_return
@@ -268,15 +269,19 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	adjust_device(device, "turnOnOff", new_state);
-	device["data"]["state"] = ! state;
-	add_or_update_switch(device, device_no);
+	success = adjust_device(device, "turnOnOff", new_state);
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+		device["data"]["state"] = ! state;
+		add_or_update_switch(device, device_no);
+	}
 }
 
 function change_brightness(device_no, new_brightness) {
 	var device = user_info["devices"][device_no];
-	var state = device["data"]["state"];
-	adjust_device(device, "brightnessSet", new_brightness);
+	success = adjust_device(device, "brightnessSet", new_brightness);
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+		device["data"]["brightness"] = new_brightness * 10;
+	}
 }
 
 function on_logout() {
