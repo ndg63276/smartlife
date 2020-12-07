@@ -123,7 +123,7 @@ function get_device_list(refresh_access_token) {
 	return to_return
 }
 
-function switch_device(device, new_state) {
+function adjust_device(device, action, new_state) {
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -138,7 +138,7 @@ function switch_device(device, new_state) {
 	}
 	var data = {
 		"header": {
-			"name": "turnOnOff",
+			"name": action,
 			"namespace": "control",
 			"payloadVersion": 1
 		},
@@ -268,9 +268,15 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	switch_device(device, new_state);
+	adjust_device(device, "turnOnOff", new_state);
 	device["data"]["state"] = ! state;
 	add_or_update_switch(device, device_no);
+}
+
+function change_brightness(device_no, new_brightness) {
+	var device = user_info["devices"][device_no];
+	var state = device["data"]["state"];
+	adjust_device(device, "brightnessSet", new_brightness);
 }
 
 function on_logout() {
@@ -286,6 +292,7 @@ function add_or_update_switch(device, device_no){
 	var name = device["name"];
 	var state = device["data"]["state"];
 	var online = device["data"]["online"];
+	if (online === false) { state = false };
 	var icon = device["icon"];
 	var device_id = device["id"];
 	var type = device["dev_type"];
@@ -293,7 +300,6 @@ function add_or_update_switch(device, device_no){
 	var currentActionDiv = $('#action_'+ device_id);
 	if(currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
-
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
 		var imgDiv = createElement("div", "switchImg");
@@ -304,6 +310,10 @@ function add_or_update_switch(device, device_no){
 		deviceDiv.appendChild(imgDiv);
 		deviceDiv.appendChild(nameDiv);
 		deviceDiv.appendChild(actionDiv);
+		if ("brightness" in device["data"] && online === true) {
+			var bTable = createBrightnessSlider(device, device_no);
+			deviceDiv.appendChild(bTable);
+		}
 		$('#switches')[0].appendChild(deviceDiv);
 	} else {
 		var parentDiv = currentActionDiv.parent()[0];
@@ -315,11 +325,33 @@ function add_or_update_switch(device, device_no){
 		newActionDiv.setAttribute("id", "action_" + device_id);
 		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
 		parentDiv.appendChild(newActionDiv);
+		if ("brightness" in device["data"] && online === true) {
+			document.getElementById("brightness_" + device_id).value = device["data"]["brightness"] / 10;
+		}
 	}
 }
 
 function getSwitchClass(type, state){
 	return "switch_" + (type === "scene" ? "scene" : state);
+}
+
+function createBrightnessSlider(device, device_no){
+	var device_id = device["id"];
+	var bTable = createElement("table", "switchBrightness");
+	var bTd = createElement("td");
+	var brightnessDiv = createElement("input");
+	brightnessDiv.id = "brightness_" + device_id;
+	brightnessDiv.type = "range";
+	brightnessDiv.min = 11;
+	brightnessDiv.max = 100;
+	brightnessDiv.value = device["data"]["brightness"] / 10;
+	brightnessDiv.onchange = function () { change_brightness(device_no, this.value) };
+	bTd.appendChild(brightnessDiv);
+	bTable.appendChild(bTd);
+	var bTd2 = createElement("td");
+	bTd2.innerHTML = "&#128262;";
+	bTable.appendChild(bTd2);
+	return bTable;
 }
 
 function createActionLink(device, online, state, type){

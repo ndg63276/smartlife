@@ -63,6 +63,11 @@ body[data-theme='b'] {
     grid-row: 2;
 }
 
-.switchAction{
+.switchBrightness{
+    padding-top: 1.0rem;
     grid-row: 3;
+}
+
+.switchAction{
+    grid-row: 4;
 }
