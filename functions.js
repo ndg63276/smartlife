@@ -326,7 +326,7 @@ function add_or_update_switch(device, device_no){
 		parentDiv.classList.remove("switch_false");
 		parentDiv.classList.add(getSwitchClass(type, state));
 		currentActionDiv.remove();
-		var newActionDiv = createElement("div", null);
+		var newActionDiv = createElement("div", "switchAction");
 		newActionDiv.setAttribute("id", "action_" + device_id);
 		newActionDiv.innerHTML = createActionLink(device_no, online, state, type);
 		parentDiv.appendChild(newActionDiv);
