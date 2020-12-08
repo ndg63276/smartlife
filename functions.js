@@ -344,7 +344,7 @@ function createBrightnessSlider(device, device_no){
 	var device_id = device["id"];
 	var bTable = createElement("table", "switchBrightness");
 	var bTd = createElement("td");
-	var brightnessDiv = createElement("input");
+	var brightnessDiv = createElement("input", "slider100");
 	brightnessDiv.id = "brightness_" + device_id;
 	brightnessDiv.type = "range";
 	brightnessDiv.min = 11;

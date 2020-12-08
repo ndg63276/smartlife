@@ -68,6 +68,10 @@ body[data-theme='b'] {
     grid-row: 3;
 }
 
+.slider100{
+    width: 100%;
+}
+
 .switchAction{
     grid-row: 4;
 }
