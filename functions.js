@@ -165,7 +165,7 @@ function adjust_device(device, action, new_state) {
 
 function refresh_token() {
 	url = baseurl + "access.do";
-	params = { "grant_type": "refresh_token", "refresh_token": user_info["sl_refresh_token"] }
+	params = { "grant_type": "refresh_token", "refresh_token": user_info["sl_refresh_token"], "rand": Math.random() }
 	$.ajax({
 		url: proxyurl+url,
 		type: "GET",
@@ -264,7 +264,8 @@ function update_devices(user_info, force_update) {
 function toggle(device_no) {
 	var device = user_info["devices"][device_no];
 	var state = device["data"]["state"];
-	if (state === false) {
+	var dev_type = device["dev_type"];
+	if (state === false || dev_type === "scene") {
 		new_state = 1;
 	} else {
 		new_state = 0;
