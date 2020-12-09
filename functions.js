@@ -271,7 +271,7 @@ function toggle(device_no) {
 		new_state = 0;
 	}
 	success = adjust_device(device, "turnOnOff", new_state);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS" && dev_type !== "scene"){
 		device["data"]["state"] = ! state;
 		add_or_update_switch(device, device_no);
 	}
