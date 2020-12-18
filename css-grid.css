@@ -68,10 +68,22 @@ body[data-theme='b'] {
     grid-row: 3;
 }
 
+.switchColorTemp{
+    grid-row: 4;
+}
+
 .slider100{
     width: 100%;
 }
 
+.colorTempSlider{
+    -webkit-appearance: none;
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(0.25turn, #f69d3c, #ebf8e1, #3f87a6);
+    outline: none;
+}
+
 .switchAction{
-    grid-row: 4;
+    grid-row: 5;
 }

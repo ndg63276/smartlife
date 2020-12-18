@@ -285,6 +285,18 @@ function change_brightness(device_no, new_brightness) {
 	}
 }
 
+function change_color_temperature(device_no, new_temperature) {
+	var device = user_info["devices"][device_no];
+	success = adjust_device(device, "colorTemperatureSet", new_temperature);
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+		// min temp = 1000, reports as 1000
+		// max temp = 10000, reports as 36294
+		new_color_temp = ((new_temperature - 1000) * 4.033) + 1000;
+		device["data"]["color_temp"] = new_color_temp;
+		device["data"]["color_mode"] = "white";
+	}
+}
+
 function on_logout() {
 	var switches = document.getElementById("switches");
 	switches.classList.add("hidden");
@@ -319,6 +331,10 @@ function add_or_update_switch(device, device_no){
 		if ("brightness" in device["data"] && online === true) {
 			var bTable = createBrightnessSlider(device, device_no);
 			deviceDiv.appendChild(bTable);
+		}
+		if ("color_temp" in device["data"] && online === true) {
+			var ctTable = createColorTempSlider(device, device_no);
+			deviceDiv.appendChild(ctTable);
 		}
 		$('#switches')[0].appendChild(deviceDiv);
 	} else {
@@ -358,6 +374,28 @@ function createBrightnessSlider(device, device_no){
 	bTd2.innerHTML = "&#128262;";
 	bTable.appendChild(bTd2);
 	return bTable;
+}
+
+function createColorTempSlider(device, device_no){
+	var device_id = device["id"];
+	var ctTable = createElement("table", "switchColorTemp");
+	var ctTd1 = createElement("td");
+	ctTd1.innerHTML = "<small>2700K</small>";
+	ctTable.appendChild(ctTd1);
+	var ctTd = createElement("td");
+	var colorTempDiv = createElement("input", "colorTempSlider");
+	colorTempDiv.id = "colortemp_" + device_id;
+	colorTempDiv.type = "range";
+	colorTempDiv.min = 1000;
+	colorTempDiv.max = 10000;
+	colorTempDiv.value = ((device["data"]["color_temp"] - 1000) / 4.033) + 1000;
+	colorTempDiv.onchange = function () { change_color_temperature(device_no, this.value) };
+	ctTd.appendChild(colorTempDiv);
+	ctTable.appendChild(ctTd);
+	var ctTd2 = createElement("td");
+	ctTd2.innerHTML = "<small>6500K</small>";
+	ctTable.appendChild(ctTd2);
+	return ctTable;
 }
 
 function createActionLink(device, online, state, type){
