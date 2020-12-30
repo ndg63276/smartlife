@@ -87,3 +87,7 @@ body[data-theme='b'] {
 .switchAction{
     grid-row: 5;
 }
+
+.colorSelectorTd{
+    vertical-align: middle;
+}

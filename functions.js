@@ -114,7 +114,7 @@ function get_device_list(refresh_access_token) {
 				to_return["devices"] = (user_info["devices"] !== undefined ? user_info["devices"] : JSON.parse(localStorage.devices));
 				to_return["success"] = true;
 			} else if ("payload" in json && "devices" in json["payload"]) {
-				to_return["devices"] = json["payload"]["devices"];
+				to_return["devices"] = merge_devices(json["payload"]["devices"], user_info["devices"]);
 				to_return["success"] = true;
 				localStorage.devices = JSON.stringify(to_return["devices"]);
 			}
@@ -123,7 +123,22 @@ function get_device_list(refresh_access_token) {
 	return to_return
 }
 
-function adjust_device(device, action, new_state) {
+function merge_devices(a, b){
+	if (b == null) { return a };
+	if (a.length != b.length) { return a };
+	for (device in b) {
+		if (!("data" in b[device])) { continue; };
+		if (!("data" in a[device])) { continue; };
+		for (prop in b[device]["data"]) {
+			if (!(prop in a[device]["data"])) {
+				a[device]["data"][prop] = b[device]["data"][prop];
+			}
+		}
+	}
+	return a;
+}
+
+function adjust_device(device, action, value_name, new_state) {
 	to_return = {};
 	var url;
 	if (user_info["access_token"].substring(0,2) === "EU") {
@@ -144,10 +159,11 @@ function adjust_device(device, action, new_state) {
 		},
 		"payload": {
 			"accessToken": user_info["access_token"],
-			"devId": device["id"],
-			"value": new_state
+			"devId": device["id"]
 		}
 	}
+	// object must be created before you can use a variable as a key
+	data["payload"][value_name] = new_state;
 	$.ajax({
 		url: proxyurl+url,
 		type: "POST",
@@ -232,7 +248,7 @@ function checkTheme(){
 function checkAutorefresh(){
 	clearInterval(autoRefreshTimer);
 	if (localStorage.autoRefresh === "true" && user_info["logged_in"] === true) {
-		autoRefreshTimer = setInterval(update_devices, 31_000, user_info, true);
+		autoRefreshTimer = setInterval(update_devices, 31_000, true);
 	}
 }
 
@@ -245,11 +261,11 @@ function on_login() {
 	buttons.classList.remove("hidden");
 	var loader_div = document.getElementById("loader");
 	loader_div.classList.add("hidden");
-	update_devices(user_info, false);
+	update_devices(false);
 	checkAutorefresh();
 }
 
-function update_devices(user_info, force_update) {
+function update_devices(force_update) {
 	if (force_update === true) {
 		device_list = get_device_list(true);
 		user_info["devices"] = device_list["devices"];
@@ -270,7 +286,7 @@ function toggle(device_no) {
 	} else {
 		new_state = 0;
 	}
-	success = adjust_device(device, "turnOnOff", new_state);
+	success = adjust_device(device, "turnOnOff", "value", new_state);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS" && dev_type !== "scene"){
 		device["data"]["state"] = ! state;
 		add_or_update_switch(device, device_no);
@@ -279,7 +295,7 @@ function toggle(device_no) {
 
 function change_brightness(device_no, new_brightness) {
 	var device = user_info["devices"][device_no];
-	success = adjust_device(device, "brightnessSet", new_brightness);
+	success = adjust_device(device, "brightnessSet", "value", new_brightness);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
 		device["data"]["brightness"] = new_brightness * 10;
 	}
@@ -287,7 +303,7 @@ function change_brightness(device_no, new_brightness) {
 
 function change_color_temperature(device_no, new_temperature) {
 	var device = user_info["devices"][device_no];
-	success = adjust_device(device, "colorTemperatureSet", new_temperature);
+	success = adjust_device(device, "colorTemperatureSet", "value", new_temperature);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
 		// min temp = 1000, reports as 1000
 		// max temp = 10000, reports as 36294
@@ -320,12 +336,18 @@ function add_or_update_switch(device, device_no){
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
-		var imgDiv = createElement("div", "switchImg");
-		imgDiv.innerHTML = createImg(icon, name, type);
+		var imgTable = createElement("table", "switchImg");
+		var imgTd = createElement("td");
+		imgTd.innerHTML = createImg(icon, name, type);
+		imgTable.appendChild(imgTd);
+		if ("color_mode" in device["data"] && online === true) {
+			var cTd = createColorSelector(device, device_no);
+			imgTable.appendChild(cTd);
+		}
 		var actionDiv = createElement("div", "switchAction");
 		actionDiv.setAttribute("id", "action_" + device_id);
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
-		deviceDiv.appendChild(imgDiv);
+		deviceDiv.appendChild(imgTable);
 		deviceDiv.appendChild(nameDiv);
 		deviceDiv.appendChild(actionDiv);
 		if ("brightness" in device["data"] && online === true) {
@@ -350,11 +372,27 @@ function add_or_update_switch(device, device_no){
 		if ("brightness" in device["data"] && online === true) {
 			document.getElementById("brightness_" + device_id).value = device["data"]["brightness"] / 10;
 		}
+		if ("color_temp" in device["data"] && online === true) {
+			document.getElementById("colortemp_" + device_id).value = ((device["data"]["color_temp"] - 1000) / 4.033) + 1000;
+		}
 	}
+	setUpColors();
 }
 
 function getSwitchClass(type, state){
 	return "switch_" + (type === "scene" ? "scene" : state);
+}
+
+function createColorSelector(device, device_no){
+	var cTd = createElement("td", "colorSelectorTd");
+	var inp = document.createElement("input", "colorSelector");
+	h = device["data"]["hue"];
+	s = device["data"]["saturation"];
+	v = device["data"]["brightness"];
+	inp.value = "hsv("+h+", "+s+", "+v+")";
+	inp.id = "color_"+device_no;
+	cTd.appendChild(inp);
+	return cTd;
 }
 
 function createBrightnessSlider(device, device_no){
@@ -433,4 +471,35 @@ function logout() {
 	setCookie("sl_refresh_token", "", -1);
 	setCookie("sl_expires_in", "", -1);
 	location.reload();
+}
+
+function setUpColors() {
+	$("[id^=color_]").spectrum({
+		type: "color",
+		hideAfterPaletteSelect: true,
+		showInitial: true,
+		showAlpha: false,
+		allowEmpty: false,
+		change: function() {
+			changeColor(this)
+		}
+	});
+	$(".color_disabled").spectrum("disable");
+}
+
+function changeColor(element) {
+	device_no = element.id.replace("color_", "");
+	var device = user_info["devices"][device_no];
+	var t = $("#"+element.id).spectrum("get");
+	hsv = t.toHsv();
+	h = hsv["h"];
+	s = hsv["s"];
+	v = hsv["v"];
+	var new_color = {"hue": h, "saturation": s, "brightness": device["data"]["brightness"]};
+	success = adjust_device(device, "colorSet", "color", new_color);
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+		device["data"]["hue"] = h;
+		device["data"]["saturation"] = s;
+		localStorage.devices = JSON.stringify(user_info["devices"]);
+	}
 }
