@@ -389,7 +389,6 @@ function setUpColors(device_no) {
 		hideAfterPaletteSelect: true,
 		showInitial: true,
 		showAlpha: false,
-		allowEmpty: false,
 		change: function() {
 			changeColor(this)
 		}
@@ -490,15 +489,23 @@ function changeColor(element) {
 	device_no = element.id.replace("color_", "");
 	var device = user_info["devices"][device_no];
 	var t = $("#"+element.id).spectrum("get");
-	hsv = t.toHsv();
-	h = hsv["h"];
-	s = hsv["s"];
-	v = hsv["v"];
-	var new_color = {"hue": h, "saturation": s, "brightness": device["data"]["brightness"]};
+	var new_color = {};
+	if (t === null || t.toName() == "white"){
+		h = 0;
+		s = 0;
+		t = "white";
+	} else {
+		hsv = t.toHsv();
+		h = hsv["h"];
+		s = hsv["s"];
+		v = hsv["v"];
+	}
+	new_color = {"hue": h, "saturation": s, "brightness": device["data"]["brightness"] / 10};
 	success = adjust_device(device, "colorSet", "color", new_color);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
 		device["data"]["hue"] = h;
 		device["data"]["saturation"] = s;
 		localStorage.devices = JSON.stringify(user_info["devices"]);
+		$("#color_"+device_no).spectrum("set", t);
 	}
 }
