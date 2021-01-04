@@ -269,7 +269,7 @@ function update_devices(force_update) {
 	if (force_update === true) {
 		device_list = get_device_list(true);
 		user_info["devices"] = device_list["devices"];
-		$('#switches').html('');
+		//$('#switches').html('');
 	}
 	var devices = user_info["devices"];
 	for (device_no in devices) {
@@ -345,7 +345,7 @@ function add_or_update_switch(device, device_no){
 			imgTable.appendChild(cTd);
 		}
 		var actionDiv = createElement("div", "switchAction");
-		actionDiv.setAttribute("id", "action_" + device_id);
+		actionDiv.id = "action_" + device_id;
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
 		deviceDiv.appendChild(imgTable);
 		deviceDiv.appendChild(nameDiv);
@@ -359,6 +359,7 @@ function add_or_update_switch(device, device_no){
 			deviceDiv.appendChild(ctTable);
 		}
 		$('#switches')[0].appendChild(deviceDiv);
+		setUpColors(device_no);
 	} else {
 		var parentDiv = currentActionDiv.parent()[0];
 		parentDiv.classList.remove("switch_true");
@@ -376,11 +377,23 @@ function add_or_update_switch(device, device_no){
 			document.getElementById("colortemp_" + device_id).value = ((device["data"]["color_temp"] - 1000) / 4.033) + 1000;
 		}
 	}
-	setUpColors();
 }
 
 function getSwitchClass(type, state){
 	return "switch_" + (type === "scene" ? "scene" : state);
+}
+
+function setUpColors(device_no) {
+	$("#color_"+device_no).spectrum({
+		type: "color",
+		hideAfterPaletteSelect: true,
+		showInitial: true,
+		showAlpha: false,
+		allowEmpty: false,
+		change: function() {
+			changeColor(this)
+		}
+	});
 }
 
 function createColorSelector(device, device_no){
@@ -471,20 +484,6 @@ function logout() {
 	setCookie("sl_refresh_token", "", -1);
 	setCookie("sl_expires_in", "", -1);
 	location.reload();
-}
-
-function setUpColors() {
-	$("[id^=color_]").spectrum({
-		type: "color",
-		hideAfterPaletteSelect: true,
-		showInitial: true,
-		showAlpha: false,
-		allowEmpty: false,
-		change: function() {
-			changeColor(this)
-		}
-	});
-	$(".color_disabled").spectrum("disable");
 }
 
 function changeColor(element) {
