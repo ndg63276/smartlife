@@ -126,12 +126,12 @@ function get_device_list(refresh_access_token) {
 function merge_devices(a, b){
 	if (b == null) { return a };
 	if (a.length != b.length) { return a };
-	for (device in b) {
-		if (!("data" in b[device])) { continue; };
-		if (!("data" in a[device])) { continue; };
-		for (prop in b[device]["data"]) {
-			if (!(prop in a[device]["data"])) {
-				a[device]["data"][prop] = b[device]["data"][prop];
+	for (device_no in b) {
+		if (!("data" in b[device_no])) { continue; };
+		if (!("data" in a[device_no])) { continue; };
+		for (prop in b[device_no]["data"]) {
+			if (!(prop in a[device_no]["data"])) {
+				a[device_no]["data"][prop] = b[device_no]["data"][prop];
 			}
 		}
 	}
@@ -448,14 +448,14 @@ function createColorTempSlider(device, device_no){
 	return ctTable;
 }
 
-function createActionLink(device, online, state, type){
+function createActionLink(device_no, online, state, type){
 	var onString = type === "scene" ? "Start" : "On";
 	if (online === false) {
 		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state === false) {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">Off</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">Off</a>';
 	} else {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device+');">' + onString + '</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">' + onString + '</a>';
 	}
 }
 
