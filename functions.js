@@ -500,7 +500,10 @@ function changeColor(element) {
 		s = hsv["s"];
 		v = hsv["v"];
 	}
-	new_color = {"hue": h, "saturation": s, "brightness": device["data"]["brightness"] / 10};
+	new_color = {"hue": h, "saturation": s, "brightness": 100};
+	if ("brightness" in device["data"]) {
+		new_color["brightness"] = device["data"]["brightness"] / 10;
+	}
 	success = adjust_device(device, "colorSet", "color", new_color);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
 		device["data"]["hue"] = h;
