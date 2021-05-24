@@ -298,6 +298,8 @@ function change_brightness(device_no, new_brightness) {
 	success = adjust_device(device, "brightnessSet", "value", new_brightness);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
 		device["data"]["brightness"] = new_brightness * 10;
+		device["data"]["state"] = true;
+		add_or_update_switch(device, device_no);
 	}
 }
 
@@ -310,6 +312,8 @@ function change_color_temperature(device_no, new_temperature) {
 		new_color_temp = ((new_temperature - 1000) * 4.033) + 1000;
 		device["data"]["color_temp"] = new_color_temp;
 		device["data"]["color_mode"] = "white";
+		device["data"]["state"] = true;
+		add_or_update_switch(device, device_no);
 	}
 }
 
@@ -506,9 +510,11 @@ function changeColor(element) {
 	}
 	success = adjust_device(device, "colorSet", "color", new_color);
 	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+		device["data"]["state"] = true;
 		device["data"]["hue"] = h;
 		device["data"]["saturation"] = s;
 		localStorage.devices = JSON.stringify(user_info["devices"]);
 		$("#color_"+device_no).spectrum("set", t);
+		add_or_update_switch(device, device_no);
 	}
 }
