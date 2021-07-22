@@ -40,6 +40,7 @@ body[data-theme='b'] {
     display: grid;
     border-radius: 2.5rem 0 3.5rem 2.5rem;
     border: 4px solid transparent;
+    max-width: 400px;
 }
 
 .singleSwitch.switch_false {
