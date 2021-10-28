@@ -1,14 +1,15 @@
 // From https://pypi.org/project/tuyapy/
 
-const baseurl = "https://px1.tuyaeu.com/homeassistant/";
+var baseurl = "https://px1.tuyaeu.com/homeassistant/";
 var proxyurl = "https://cors.smartathome.co.uk/";
 var autoRefreshTimer;
 var user_info = {};
 
-$( document ).ready(function() {
+// Jquery ready is deprecated since 3.0
+$(document).ready(function () {
 	testFirstCookie();
 	document.getElementById("password").onkeydown = function (e) {
-		if (e.keyCode === 13) {
+		if (e.key === 'Enter') {
 			do_login();
 		}
 	};
@@ -18,6 +19,22 @@ $( document ).ready(function() {
 		"sl_expires_in": getCookie("sl_expires_in")
 	};
 	console.log(user_info);
+
+	if (user_info["access_token"] !== "") {
+		const region = user_info.access_token.substring(0, 2);
+
+		if (region === "EU") {
+		} else if (region === "AY") {
+			baseurl = baseurl.replace("eu", "cn");
+		} else if (region === "AZ") {
+			baseurl = baseurl.replace("eu", "us");
+		}
+
+		if (region !== "AY") {
+			proxyurl = '';
+		}
+	}
+
 	logged_in = check_login();
 	if (logged_in["success"] === true) {
 		user_info["devices"] = logged_in["devices"];
@@ -38,9 +55,17 @@ $( document ).ready(function() {
 
 function login(username, password, region, storecreds) {
 	var url = baseurl + "auth.do";
+
+	if (region == '1') {
+		url = baseurl.replace('eu', 'us') + "auth.do";
+	} else if (region == '86') {
+		url = proxyurl + baseurl.replace('eu', 'cn') + "auth.do";
+	}
+
 	var headers = {
 		"Content-Type": "application/x-www-form-urlencoded"
 	}
+
 	var data = {
 		"userName": username,
 		"password": password,
@@ -48,8 +73,9 @@ function login(username, password, region, storecreds) {
 		"bizType": "smart_life",
 		"from": "tuya",
 	}
+
 	$.ajax({
-		url: proxyurl+url,
+		url: url, // since the default is eu, cors are enabled
 		type: "POST",
 		headers: headers,
 		data: data,
@@ -65,12 +91,12 @@ function store_tokens(json, storecreds) {
 	if ("access_token" in json) {
 		user_info["access_token"] = json["access_token"];
 		user_info["sl_refresh_token"] = json["refresh_token"];
-		user_info["sl_expires_in"] = Date.now() + json["expires_in"]*1000;
+		user_info["sl_expires_in"] = Date.now() + json["expires_in"] * 1000;
 		user_info["logged_in"] = true;
 		if (storecreds === true) {
-			setCookie("access_token", json["access_token"], json["expires_in"]/3600);
-			setCookie("sl_refresh_token", json["refresh_token"], json["expires_in"]/3600);
-			setCookie("sl_expires_in", Date.now() + json["expires_in"]*1000, json["expires_in"]/3600);
+			setCookie("access_token", json["access_token"], json["expires_in"] / 3600);
+			setCookie("sl_refresh_token", json["refresh_token"], json["expires_in"] / 3600);
+			setCookie("sl_expires_in", Date.now() + json["expires_in"] * 1000, json["expires_in"] / 3600);
 		}
 	}
 }
@@ -80,14 +106,8 @@ function get_device_list(refresh_access_token) {
 		refresh_token();
 	}
 	to_return = {};
-	var url;
-	if (user_info["access_token"].substring(0,2) === "EU") {
-		url = baseurl + "skill";
-	} else if (user_info["access_token"].substring(0,2) === "AY") {
-		url = baseurl.replace("eu", "cn") + "skill";
-	} else {
-		url = baseurl.replace("eu", "us") + "skill";
-	}
+	var url = baseurl + "skill";
+
 	var headers = {
 		"Content-Type": "application/json"
 	}
@@ -102,7 +122,7 @@ function get_device_list(refresh_access_token) {
 		},
 	}
 	$.ajax({
-		url: proxyurl+url,
+		url: proxyurl + url,
 		type: "POST",
 		headers: headers,
 		data: JSON.stringify(data),
@@ -123,7 +143,7 @@ function get_device_list(refresh_access_token) {
 	return to_return
 }
 
-function merge_devices(a, b){
+function merge_devices(a, b) {
 	if (b == null) { return a };
 	if (a.length != b.length) { return a };
 	for (device_no in b) {
@@ -139,15 +159,9 @@ function merge_devices(a, b){
 }
 
 function adjust_device(device, action, value_name, new_state) {
-	to_return = {};
-	var url;
-	if (user_info["access_token"].substring(0,2) === "EU") {
-		url = baseurl + "skill";
-	} else if (user_info["access_token"].substring(0,2) === "AY") {
-		url = baseurl.replace("eu", "cn") + "skill";
-	} else {
-		url = baseurl.replace("eu", "us") + "skill";
-	}
+	var to_return = {};
+	var url = baseurl + "skill";
+
 	var headers = {
 		"Content-Type": "application/json"
 	}
@@ -165,7 +179,7 @@ function adjust_device(device, action, value_name, new_state) {
 	// object must be created before you can use a variable as a key
 	data["payload"][value_name] = new_state;
 	$.ajax({
-		url: proxyurl+url,
+		url: proxyurl + url,
 		type: "POST",
 		headers: headers,
 		data: JSON.stringify(data),
@@ -183,7 +197,7 @@ function refresh_token() {
 	url = baseurl + "access.do";
 	params = { "grant_type": "refresh_token", "refresh_token": user_info["sl_refresh_token"], "rand": Math.random() }
 	$.ajax({
-		url: proxyurl+url,
+		url: proxyurl + url,
 		type: "GET",
 		data: params,
 		dataType: "json",
@@ -203,10 +217,25 @@ function do_login() {
 	var username = document.getElementById("username").value;
 	var password = document.getElementById("password").value;
 	var region = document.getElementById("region").value;
+
 	var storecreds = document.getElementById("storecreds").checked;
-	setTimeout(function(){
+	setTimeout(function () {
 		login(username, password, region, storecreds);
 		if (user_info["logged_in"] === true) {
+
+			const region = user_info.access_token.substring(0, 2);
+
+			if (region === "EU") {
+			} else if (region === "AY") {
+				baseurl = baseurl.replace("eu", "cn");
+			} else if (region === "AZ") {
+				baseurl = baseurl.replace("eu", "us");
+			}
+
+			if (region !== "AY") {
+				proxyurl = '';
+			}
+
 			device_list = get_device_list(false);
 			user_info["devices"] = device_list["devices"]
 			on_login();
@@ -224,28 +253,28 @@ function check_login() {
 		return device_list;
 	} else {
 		console.log("No access_token");
-		return {"success": false};
+		return { "success": false };
 	}
 }
 
-function readLocalStorage(){
+function readLocalStorage() {
 	// Not initialized
 	if (localStorage.autoRefresh == null) {
 		localStorage.autoRefresh = "true";
 		localStorage.theme = "a";
 	}
-	$('#autorefresh').prop( "checked", localStorage.autoRefresh === "true").checkboxradio( "refresh" );
+	$('#autorefresh').prop("checked", localStorage.autoRefresh === "true").checkboxradio("refresh");
 	if (localStorage.theme !== "a") {
 		checkTheme();
 	}
 }
 
-function checkTheme(){
+function checkTheme() {
 	switchTheme();
 	localStorage.theme = $("#page").attr("data-theme");
 }
 
-function checkAutorefresh(){
+function checkAutorefresh() {
 	clearInterval(autoRefreshTimer);
 	if (localStorage.autoRefresh === "true" && user_info["logged_in"] === true) {
 		autoRefreshTimer = setInterval(update_devices, 31_000, true);
@@ -287,8 +316,8 @@ function toggle(device_no) {
 		new_state = 0;
 	}
 	success = adjust_device(device, "turnOnOff", "value", new_state);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS" && dev_type !== "scene"){
-		device["data"]["state"] = ! state;
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS" && dev_type !== "scene") {
+		device["data"]["state"] = !state;
 		add_or_update_switch(device, device_no);
 	}
 }
@@ -296,7 +325,7 @@ function toggle(device_no) {
 function change_brightness(device_no, new_brightness) {
 	var device = user_info["devices"][device_no];
 	success = adjust_device(device, "brightnessSet", "value", new_brightness);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS") {
 		device["data"]["brightness"] = new_brightness * 10;
 		device["data"]["state"] = true;
 		add_or_update_switch(device, device_no);
@@ -306,7 +335,7 @@ function change_brightness(device_no, new_brightness) {
 function change_color_temperature(device_no, new_temperature) {
 	var device = user_info["devices"][device_no];
 	success = adjust_device(device, "colorTemperatureSet", "value", new_temperature);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS") {
 		// min temp = 1000, reports as 1000
 		// max temp = 10000, reports as 36294
 		new_color_temp = ((new_temperature - 1000) * 4.033) + 1000;
@@ -326,7 +355,7 @@ function on_logout() {
 	loader_div.classList.add("hidden");
 }
 
-function add_or_update_switch(device, device_no){
+function add_or_update_switch(device, device_no) {
 	var name = device["name"];
 	var state = device["data"]["state"];
 	var online = device["data"]["online"];
@@ -335,8 +364,8 @@ function add_or_update_switch(device, device_no){
 	var device_id = device["id"];
 	var type = device["dev_type"];
 
-	var currentActionDiv = $('#action_'+ device_id);
-	if(currentActionDiv.length === 0) {
+	var currentActionDiv = $('#action_' + device_id);
+	if (currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
@@ -383,35 +412,35 @@ function add_or_update_switch(device, device_no){
 	}
 }
 
-function getSwitchClass(type, state){
+function getSwitchClass(type, state) {
 	return "switch_" + (type === "scene" ? "scene" : state);
 }
 
 function setUpColors(device_no) {
-	$("#color_"+device_no).spectrum({
+	$("#color_" + device_no).spectrum({
 		type: "color",
 		hideAfterPaletteSelect: true,
 		showInitial: true,
 		showAlpha: false,
-		change: function() {
+		change: function () {
 			changeColor(this)
 		}
 	});
 }
 
-function createColorSelector(device, device_no){
+function createColorSelector(device, device_no) {
 	var cTd = createElement("td", "colorSelectorTd");
 	var inp = document.createElement("input", "colorSelector");
 	h = device["data"]["hue"];
 	s = device["data"]["saturation"];
 	v = device["data"]["brightness"];
-	inp.value = "hsv("+h+", "+s+", "+v+")";
-	inp.id = "color_"+device_no;
+	inp.value = "hsv(" + h + ", " + s + ", " + v + ")";
+	inp.id = "color_" + device_no;
 	cTd.appendChild(inp);
 	return cTd;
 }
 
-function createBrightnessSlider(device, device_no){
+function createBrightnessSlider(device, device_no) {
 	var device_id = device["id"];
 	var bTable = createElement("table", "switchBrightness");
 	var bTd = createElement("td");
@@ -430,7 +459,7 @@ function createBrightnessSlider(device, device_no){
 	return bTable;
 }
 
-function createColorTempSlider(device, device_no){
+function createColorTempSlider(device, device_no) {
 	var device_id = device["id"];
 	var ctTable = createElement("table", "switchColorTemp");
 	var ctTd1 = createElement("td");
@@ -452,25 +481,25 @@ function createColorTempSlider(device, device_no){
 	return ctTable;
 }
 
-function createActionLink(device_no, online, state, type){
+function createActionLink(device_no, online, state, type) {
 	var onString = type === "scene" ? "Start" : "On";
 	if (online === false) {
 		return '<a href="#" class="borderShadow ui-btn ui-disabled ui-btn-inline ui-icon-power ui-btn-icon-left">Offline</a>';
 	} else if (state === false) {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">Off</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-b ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle(' + device_no + ');">Off</a>';
 	} else {
-		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle('+device_no+');">' + onString + '</a>';
+		return '<a href="#" class="borderShadow ui-btn ui-btn-inline ui-icon-power ui-btn-icon-left" onclick="toggle(' + device_no + ');">' + onString + '</a>';
 	}
 }
 
-function createImg(icon, name, type){
+function createImg(icon, name, type) {
 	if (isNullOrEmpty(icon)) {
 		return "<p>" + type + "</p>";
 	}
 	return "<img width=50 src='" + icon + "' alt='" + name + "'>";
 }
 
-function createElement(typeName, className){
+function createElement(typeName, className) {
 	var elem = document.createElement(typeName);
 	if (!isNullOrEmpty(className)) {
 		elem.className = className;
@@ -478,7 +507,7 @@ function createElement(typeName, className){
 	return elem;
 }
 
-function isNullOrEmpty(entry){
+function isNullOrEmpty(entry) {
 	return entry == null || entry === '';
 }
 
@@ -492,9 +521,9 @@ function logout() {
 function changeColor(element) {
 	device_no = element.id.replace("color_", "");
 	var device = user_info["devices"][device_no];
-	var t = $("#"+element.id).spectrum("get");
+	var t = $("#" + element.id).spectrum("get");
 	var new_color = {};
-	if (t === null || t.toName() == "white"){
+	if (t === null || t.toName() == "white") {
 		h = 0;
 		s = 0;
 		t = "white";
@@ -504,17 +533,17 @@ function changeColor(element) {
 		s = hsv["s"];
 		v = hsv["v"];
 	}
-	new_color = {"hue": h, "saturation": s, "brightness": 100};
+	new_color = { "hue": h, "saturation": s, "brightness": 100 };
 	if ("brightness" in device["data"]) {
 		new_color["brightness"] = device["data"]["brightness"] / 10;
 	}
 	success = adjust_device(device, "colorSet", "color", new_color);
-	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS"){
+	if ("header" in success && "code" in success["header"] && success["header"]["code"] === "SUCCESS") {
 		device["data"]["state"] = true;
 		device["data"]["hue"] = h;
 		device["data"]["saturation"] = s;
 		localStorage.devices = JSON.stringify(user_info["devices"]);
-		$("#color_"+device_no).spectrum("set", t);
+		$("#color_" + device_no).spectrum("set", t);
 		add_or_update_switch(device, device_no);
 	}
 }
