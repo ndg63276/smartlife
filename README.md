@@ -4,7 +4,7 @@
 1. Clone this repository
 ```
 git clone https://github.com/ndg63276/smartlife.git
-``
+```
 2. Run the included server by
 ```
 python serve.py
