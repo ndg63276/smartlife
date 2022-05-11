@@ -1,7 +1,23 @@
-// From https://pypi.org/project/tuyapy/
+// Main source: https://pypi.org/project/tuyapy/
+
+// Insert the address of your cors anywhere server here, eg
+const defaultCorsServer = "https://cors-anywhere.herokuapp.com/";
+
+const approvedHosts = [
+	"smartathome.co.uk",
+	"www.smartathome.co.uk",
+	"192.168.1.93:8000",
+	"192.168.1.93:4443"
+]
+
+var proxyurl;
+if (approvedHosts.includes(location.host)) {
+	proxyurl = "https://cors.smartathome.co.uk/";
+} else {
+	proxyurl = defaultCorsServer;
+}
 
 var baseurl = "https://px1.tuyaeu.com/homeassistant/";
-var proxyurl = "https://cors.smartathome.co.uk/";
 var autoRefreshTimer;
 var user_info = {};
 
