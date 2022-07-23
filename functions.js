@@ -371,20 +371,36 @@ function on_logout() {
 	loader_div.classList.add("hidden");
 }
 
+function hide_device(device_id, name) {
+	console.log("hide: " +device_id);
+	var hiddenDevices = getCookie("sl_hidden_devices");
+	hiddenDevices += " "+device_id;
+	setCookie("sl_hidden_devices", hiddenDevices, 24*365*10);
+	document.getElementById("switches").innerHTML = "";
+	update_devices(false);
+	setTimeout(function() {alert(name+" hidden. Clear your cookies to undo.")}, 100);
+}
+
 function add_or_update_switch(device, device_no) {
+	var device_id = device["id"];
+	var hiddenDevices = getCookie("sl_hidden_devices");
+	if (hiddenDevices.split(" ").includes(device_id)) { return };
+
 	var name = device["name"];
 	var state = device["data"]["state"];
 	var online = device["data"]["online"];
 	if (online === false) { state = false };
 	var icon = device["icon"];
-	var device_id = device["id"];
-	var type = device["dev_type"];
 
+	var type = device["dev_type"];
 	var currentActionDiv = $('#action_' + device_id);
 	if (currentActionDiv.length === 0) {
 		var deviceDiv = createElement("div", "gridElem singleSwitch borderShadow ui-btn ui-btn-up-b ui-btn-hover-b " + getSwitchClass(type, state));
 		var nameDiv = createElement("div", "switchName");
 		nameDiv.innerHTML = name;
+		var hideSpan = createElement("span", "hideDevice");
+		hideSpan.innerHTML = "&#10060;";
+		hideSpan.onclick = function() {hide_device(device_id, name)};
 		var imgTable = createElement("table", "switchImg");
 		var imgTd = createElement("td");
 		imgTd.innerHTML = createImg(icon, name, type);
@@ -396,8 +412,9 @@ function add_or_update_switch(device, device_no) {
 		var actionDiv = createElement("div", "switchAction");
 		actionDiv.id = "action_" + device_id;
 		actionDiv.innerHTML = createActionLink(device_no, online, state, type);
-		deviceDiv.appendChild(imgTable);
 		deviceDiv.appendChild(nameDiv);
+		deviceDiv.appendChild(hideSpan);
+		deviceDiv.appendChild(imgTable);
 		deviceDiv.appendChild(actionDiv);
 		if ("brightness" in device["data"] && online === true) {
 			var bTable = createBrightnessSlider(device, device_no);
