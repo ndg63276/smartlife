@@ -67,6 +67,14 @@ $(document).ready(function () {
 		checkAutorefresh();
 	});
 	checkAutorefresh();
+
+	var searchParams = new URLSearchParams(window.location.search);
+	if (searchParams.get("minimal") == "true") {
+		var els_to_hide = document.getElementsByClassName("minimal");
+		for (var i = 0; i < els_to_hide.length; i++) {
+			els_to_hide.item(i).classList.add("hidden")
+		};
+	}
 });
 
 function login(username, password, region, storecreds) {

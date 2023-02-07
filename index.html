@@ -37,15 +37,15 @@
     <link rel="stylesheet" type="text/css" href="css-grid.css">
     <title>SmartAtHome.co.uk - My Smart Life Devices</title>
     <script src="general_functions.js"></script>
-    <script src="functions.js"></script>
+    <script src="functions.js?v=2"></script>
 </head>
 <body>
 <div id="page" data-role="page">
     <center>
-        <img src="TuyaLogo.jpg" class="overlay">
-        <a href="../index.html"><img src="long_logo.png" alt="smartathome.co.uk logo" id="logo"></a>
+        <img src="TuyaLogo.jpg" class="overlay minimal">
+        <a href="../index.html"><img src="long_logo.png" alt="smartathome.co.uk logo" id="logo" class="minimal"></a>
         <a href="../index.html"><img src="long_logo_dark.png" alt="smartathome.co.uk logo" id="logo_dark"
-                                     class="hidden"></a>
+                                     class="hidden minimal"></a>
         <br/><br/>
         <div class="hidden" id="login">
             <label for="username">Smart Life / Tuya Username: </label>
@@ -71,7 +71,7 @@
             <div id="loginfailed"></div>
         </div>
         <div class="loader" id="loader"></div>
-    <div class="hidden" id="buttons">
+    <div class="hidden minimal" id="buttons">
         <div class="in-line-div">
             <button onclick="checkTheme()" class="borderShadow">&#9681; Theme</button>
         </div>
