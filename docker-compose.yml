@@ -1,0 +1,7 @@
+version: '3.8'
+name: smartlife
+services:
+  smartlife:
+      image: ndg63276/smartlife:latest
+      ports:
+        - '8000:8000'
