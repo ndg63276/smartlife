@@ -77,7 +77,7 @@ $(document).ready(function () {
 	}
 });
 
-function login(username, password, region, storecreds) {
+function login(username, password, region, platform, storecreds) {
 	var url = baseurl + "auth.do";
 
 	if (region == '1') {
@@ -94,7 +94,7 @@ function login(username, password, region, storecreds) {
 		"userName": username,
 		"password": password,
 		"countryCode": region,
-		"bizType": "smart_life",
+		"bizType": platform,
 		"from": "tuya",
 	}
 
@@ -241,10 +241,11 @@ function do_login() {
 	var username = document.getElementById("username").value;
 	var password = document.getElementById("password").value;
 	var region = document.getElementById("region").value;
+	var platform = document.getElementById("platform").value;
 
 	var storecreds = document.getElementById("storecreds").checked;
 	setTimeout(function () {
-		login(username, password, region, storecreds);
+		login(username, password, region, platform, storecreds);
 		if (user_info["logged_in"] === true) {
 
 			const region = user_info.access_token.substring(0, 2);
