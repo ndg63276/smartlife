@@ -75,6 +75,23 @@ $(document).ready(function () {
 			els_to_hide.item(i).classList.add("hidden")
 		};
 	}
+	if (searchParams.get("region").toLowerCase() == "eu") {
+		$("#region").val("44");
+		$("#region").selectmenu("refresh", true);
+	} else if (searchParams.get("region").toLowerCase() == "us") {
+		$("#region").val("1");
+		$("#region").selectmenu("refresh", true);
+	} else if (searchParams.get("region").toLowerCase() == "cn") {
+		$("#region").val("86");
+		$("#region").selectmenu("refresh", true);
+	}
+	if (searchParams.get("platform").toLowerCase() == "smartlife") {
+		$("#platform").val("smart_life");
+		$("#platform").selectmenu("refresh", true);
+	} else if (searchParams.get("platform").toLowerCase() == "tuya") {
+		$("#platform").val("tuya");
+		$("#platform").selectmenu("refresh", true);
+	}
 });
 
 function login(username, password, region, platform, storecreds) {
