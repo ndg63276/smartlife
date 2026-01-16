@@ -75,21 +75,22 @@ $(document).ready(function () {
 			els_to_hide.item(i).classList.add("hidden")
 		};
 	}
-	if (searchParams.get("region").toLowerCase() == "eu") {
-		$("#region").val("44");
-		$("#region").selectmenu("refresh", true);
-	} else if (searchParams.get("region").toLowerCase() == "us") {
-		$("#region").val("1");
-		$("#region").selectmenu("refresh", true);
-	} else if (searchParams.get("region").toLowerCase() == "cn") {
-		$("#region").val("86");
+	if (searchParams.get("region")) {
+		if (searchParams.get("region").toLowerCase() == "eu") {
+			$("#region").val("44");
+		} else if (searchParams.get("region").toLowerCase() == "us") {
+			$("#region").val("1");
+		} else if (searchParams.get("region").toLowerCase() == "cn") {
+			$("#region").val("86");
+		}
 		$("#region").selectmenu("refresh", true);
 	}
-	if (searchParams.get("platform").toLowerCase() == "smartlife") {
-		$("#platform").val("smart_life");
-		$("#platform").selectmenu("refresh", true);
-	} else if (searchParams.get("platform").toLowerCase() == "tuya") {
-		$("#platform").val("tuya");
+	if (searchParams.get("platform")) {
+		if (searchParams.get("platform").toLowerCase() == "smartlife") {
+			$("#platform").val("smart_life");
+		} else if (searchParams.get("platform").toLowerCase() == "tuya") {
+			$("#platform").val("tuya");
+		}
 		$("#platform").selectmenu("refresh", true);
 	}
 });
